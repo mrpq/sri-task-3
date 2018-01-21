@@ -63,68 +63,81 @@ class Event extends Component {
 
   componentDidUpdate(prevProps) {
     if (prevProps.data.loading !== this.props.data.loading) {
-      this.setState(prevState => ({
-        form: {
-          ...prevState.form,
-          topic: { value: this.props.data.event.title }
-        }
-      }));
+      this.hydrateStateWithData();
     }
   }
 
-  handleCloseClick() {
-    const closeIcon = withRouter(({ history }) => {
-      return (
-        <div class="form-header__close" onClick={history.push("/")}>
-          <CloseIcon className="form-header__close-icon" />
-        </div>
-      );
-    });
-    const colseButton = withRouter(({ history }) => {
-      return (
-        <button class="btn btn--cancel" onClick={history.push("/")}>
-          Отмена
-        </button>
-      );
-    });
-    const deleteEventButtonMobile = ({ history }) => {
-      return (
-        <button
-          class="delete-meeting__button"
-          onClick={() => {
-            // toggle deleteAlertModal
-          }}
-        >
-          Удалить встречу
-        </button>
-      );
-    };
-    const deleteEventButtonDescktop = ({ history }) => {
-      <button
-        class="btn btn--cancel btn--desktop-only"
-        onClick={() => {
-          // toggle deleteAlertModal
-        }}
-      >
-        Удалить встречу
-      </button>;
-    };
-    const saveButton = withRouter(({ history }) => {
-      <button
-        class="btn btn--cancel"
-        onClick={() => {
-          // create new / update
-          // toggle modal on home if new created
-          // redirect to home
-          history.push("/");
-        }}
-      >
-        Сохранить
-      </button>;
+  hydrateStateWithData() {
+    const { event } = this.props.data;
+    this.setState(prevState => {
+      const newState = {
+        form: {
+          ...prevState.form,
+          topic: { value: event.title },
+          date: { value: moment(event.dateStart) },
+          timeStart: { value: moment(event.dateStart) },
+          timeEnd: { value: moment(event.dateEnd) },
+          participantsList: event.users,
+          room: event.room
+        }
+      };
+      return newState;
     });
   }
 
-  toggleDeletArlertModal = () => {
+  // handleCloseClick() {
+  //   const closeIcon = withRouter(({ history }) => {
+  //     return (
+  //       <div class="form-header__close" onClick={history.push("/")}>
+  //         <CloseIcon className="form-header__close-icon" />
+  //       </div>
+  //     );
+  //   });
+  //   const colseButton = withRouter(({ history }) => {
+  //     return (
+  //       <button class="btn btn--cancel" onClick={history.push("/")}>
+  //         Отмена
+  //       </button>
+  //     );
+  //   });
+  //   const deleteEventButtonMobile = ({ history }) => {
+  //     return (
+  //       <button
+  //         class="delete-meeting__button"
+  //         onClick={() => {
+  //           // toggle deleteAlertModal
+  //         }}
+  //       >
+  //         Удалить встречу
+  //       </button>
+  //     );
+  //   };
+  //   const deleteEventButtonDescktop = ({ history }) => {
+  //     <button
+  //       class="btn btn--cancel btn--desktop-only"
+  //       onClick={() => {
+  //         // toggle deleteAlertModal
+  //       }}
+  //     >
+  //       Удалить встречу
+  //     </button>;
+  //   };
+  //   const saveButton = withRouter(({ history }) => {
+  //     <button
+  //       class="btn btn--cancel"
+  //       onClick={() => {
+  //         // create new / update
+  //         // toggle modal on home if new created
+  //         // redirect to home
+  //         history.push("/");
+  //       }}
+  //     >
+  //       Сохранить
+  //     </button>;
+  //   });
+  // }
+
+  toggleDeleteArlertModal = () => {
     this.setState(prevState => ({
       deleteAlertModal: !prevState.deleteAlertModal
     }));
@@ -136,8 +149,7 @@ class Event extends Component {
   };
   createDeleteClickHandler = () => e => {
     e.preventDefault();
-    console.log("Hello");
-    this.toggleDeletArlertModal();
+    this.toggleDeleteArlertModal();
   };
   createDeleteConfirmClickHandler = () => () => {
     // send delete request
@@ -150,7 +162,8 @@ class Event extends Component {
     history.push("/");
   };
 
-  handleInputChange = e => {
+  handleTextInputChange = e => {
+    console.log(e.key);
     const { target: { name, value } } = e;
     console.log(name, value);
     this.setState(prevState => {
@@ -165,6 +178,7 @@ class Event extends Component {
       };
     });
   };
+
   handleTimeInputChange = name => value => {
     this.setState(prevState => {
       return {
@@ -178,8 +192,22 @@ class Event extends Component {
       };
     });
   };
+
+  handleDateInputChange = value => {
+    this.setState(prevState => {
+      return {
+        form: {
+          ...prevState.form,
+          date: {
+            value: moment(value),
+            errors: null
+          }
+        }
+      };
+    });
+  };
+
   handleClearClick = name => e => {
-    console.log(name);
     this.setState(prevState => {
       return {
         form: {
@@ -194,21 +222,6 @@ class Event extends Component {
   };
 
   createTopicInput = options => {
-    const handleChange = e => {
-      const { target: { name, value } } = e;
-      this.setState(prevState => {
-        return {
-          form: {
-            ...prevState.form,
-            [name]: {
-              value,
-              errors: null
-            }
-          }
-        };
-      });
-    };
-
     return () => {
       const id = "topic";
       const name = "topic";
@@ -220,7 +233,7 @@ class Event extends Component {
             id={id}
             name={name}
             value={this.state.form[name].value}
-            onChange={this.handleInputChange}
+            onChange={this.handleTextInputChange}
             onClearClick={this.handleClearClick(name)}
             placeholder="О чем будем говорить?"
             // clear="true"
@@ -242,7 +255,14 @@ class Event extends Component {
             id={id}
             name={name}
             value={this.state.form[name].value}
-            onChange={this.handleInputChange}
+            onChange={this.handleDateInputChange}
+            dayPickerProps={{
+              disabledDays: [
+                {
+                  before: new Date()
+                }
+              ]
+            }}
           />
         </Fragment>
       );
@@ -273,11 +293,34 @@ class Event extends Component {
           id={id}
           name={name}
           value={this.state.form[name].value}
-          onChange={this.handleInputChange}
+          onChange={this.handleTextInputChange}
           onClearClick={this.handleClearClick(name)}
         />
       </Fragment>
     );
+  };
+
+  createParticipantsList = () => () => {
+    const deletePraticipantClickHandler = id => () => {
+      this.setState(prevState => {
+        return {
+          form: {
+            ...prevState.form,
+            participantsList: prevState.form.participantsList.filter(
+              participant => participant.id !== id
+            )
+          }
+        };
+      });
+    };
+    return this.state.form.participantsList.map(participant => {
+      return (
+        <Participant
+          {...participant}
+          onDeleteClick={deletePraticipantClickHandler(participant.id)}
+        />
+      );
+    });
   };
 
   handleEventEdit() {
@@ -288,13 +331,14 @@ class Event extends Component {
         timeStartInput={this.createTimeInput("timeStart")}
         timeEndInput={this.createTimeInput("timeEnd")}
         participantsInput={this.createParticipantsInput()}
+        participantsList={this.createParticipantsList()}
         onCloseClick={this.createCloseClickHandler()}
         onDeleteClick={this.createDeleteClickHandler()}
         onSubmitClick={this.createSumbitClickHandler()}
         modal={{
           visible: this.state.deleteAlertModal,
           onConfirmClick: this.createDeleteConfirmClickHandler(),
-          onCancelClick: this.toggleDeletArlertModal
+          onCancelClick: this.toggleDeleteArlertModal
         }}
       />
     );

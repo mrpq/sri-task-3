@@ -28,9 +28,7 @@ class ClearableInput extends Component {
           className="clearable-input__clear clearable-input__clear--visible"
           onClick={onClearClick}
         >
-          {value.length > 0 ? (
-            <CloseIcon className="clearable-input__clear-icon" />
-          ) : null}
+          {value ? <CloseIcon className="clearable-input__clear-icon" /> : null}
         </div>
       </div>
     );

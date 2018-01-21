@@ -28,7 +28,7 @@ const TimeInput = props => {
       id={id}
       name={name}
       disabledHours={() => {
-        return [0, 1, 2, 3, 4, 5, 6, 7, 8, 23];
+        return [0, 1, 2, 3, 4, 5, 6, 7, 23];
       }}
       showSecond={false}
       minuteStep={5}

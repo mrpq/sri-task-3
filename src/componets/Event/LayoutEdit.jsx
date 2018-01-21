@@ -74,7 +74,9 @@ const LayoutEdit = props => {
                     <Executioner>{participantsInput}</Executioner>
                   </div>
                   <div className="participants">
-                    <ul className="participants__list">{participantsList}</ul>
+                    <ul className="participants__list">
+                      <Executioner>{participantsList}</Executioner>
+                    </ul>
                   </div>
                 </div>
                 <div className="delimiter" />
