@@ -1,13 +1,43 @@
 import React from "react";
 import PropTypes from "prop-types";
 
+import TimePicker from "rc-time-picker";
+// import moment from "moment";
+import "rc-time-picker/assets/index.css";
+import "./timepicker.css";
+
+// const TimeInput = props => {
+//   const { id, name, value, onChange } = props;
+//   return (
+//     <input type="time" id={id} name={name} value={value} onChange={onChange} />
+//   );
+// };
+
+// TimeInput.propTypes = {
+//   id: PropTypes.string.isRequired,
+//   name: PropTypes.string.isRequired,
+//   value: PropTypes.string.isRequired,
+//   onChange: PropTypes.func.isRequired
+// };
+
 const TimeInput = props => {
-  const { id, name, value, onChange } = props;
+  const { id, name, value, defaultValue, onChange } = props;
   return (
-    <input type="time" id={id} name={name} value={value} onChange={onChange} />
+    // <div
+    <TimePicker
+      id={id}
+      name={name}
+      disabledHours={() => {
+        return [0, 1, 2, 3, 4, 5, 6, 7, 8, 23];
+      }}
+      showSecond={false}
+      minuteStep={5}
+      defaultValue={defaultValue}
+      value={value}
+      onChange={onChange}
+    />
   );
 };
-
 TimeInput.propTypes = {
   id: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
@@ -15,4 +45,5 @@ TimeInput.propTypes = {
   onChange: PropTypes.func.isRequired
 };
 
+// export default TimeInput;
 export default TimeInput;

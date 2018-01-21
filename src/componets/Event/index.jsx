@@ -2,6 +2,7 @@ import React, { Component, Fragment } from "react";
 import { withRouter } from "react-router-dom";
 import { graphql } from "react-apollo";
 import gql from "graphql-tag";
+import moment from "moment-timezone";
 
 import InputLabel from "../common/gui/InputLabel";
 import ClearableInput from "../common/gui/ClearableInput";
@@ -34,16 +35,24 @@ const EVENT_QUERY = gql`
     }
   }
 `;
+const round5 = x => {
+  return Math.ceil(x / 5) * 5;
+};
 
 class Event extends Component {
   constructor(props) {
     super(props);
+    const now = moment();
+    now.minute(round5(now.minute()));
+    const timeStartDefault = now;
+    const timeEndDefault = now.clone().add(15, "minute");
+
     this.state = {
       form: {
         topic: { value: "", errors: null },
         date: { value: "", errors: null },
-        timeStart: { value: "", errors: null },
-        timeEnd: { value: "", errors: null },
+        timeStart: { value: timeStartDefault, errors: null },
+        timeEnd: { value: timeEndDefault, errors: null },
         participantsInput: { value: "", errors: null },
         participantsList: [],
         room: null
@@ -156,6 +165,19 @@ class Event extends Component {
       };
     });
   };
+  handleTimeInputChange = name => value => {
+    this.setState(prevState => {
+      return {
+        form: {
+          ...prevState.form,
+          [name]: {
+            value,
+            errors: null
+          }
+        }
+      };
+    });
+  };
   handleClearClick = name => e => {
     console.log(name);
     this.setState(prevState => {
@@ -234,7 +256,7 @@ class Event extends Component {
           id={id}
           name={name}
           value={this.state.form[name].value}
-          onChange={this.handleInputChange}
+          onChange={this.handleTimeInputChange(name)}
         />
       );
     };
