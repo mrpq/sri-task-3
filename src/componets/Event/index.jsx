@@ -3,10 +3,7 @@ import { Route, Redirect } from "react-router-dom";
 import { graphql } from "react-apollo";
 import gql from "graphql-tag";
 
-import MomentLocaleUtils, {
-  formatDate,
-  parseDate
-} from "react-day-picker/moment";
+import MomentLocaleUtils, { formatDate } from "react-day-picker/moment";
 import moment from "moment-timezone";
 import "moment/locale/ru";
 
@@ -48,11 +45,11 @@ const round5 = x => {
 class Event extends Component {
   constructor(props) {
     super(props);
+
     const now = moment();
     now.minute(round5(now.minute()));
     const dateStartDefault = now;
     const dateEndDefault = now.clone().add(15, "minute");
-
     this.state = {
       form: {
         topic: { value: "", errors: null },
@@ -68,18 +65,19 @@ class Event extends Component {
     };
   }
 
+  componentDidMount() {
+    this.hydrateStateWithData(); //rehydrates state if we back
+    // console.log("hello");
+  }
   componentDidUpdate(prevProps) {
     if (prevProps.data.loading !== this.props.data.loading) {
-      const { event } = this.props.data;
-      if (!event) {
-        return;
-      }
       this.hydrateStateWithData();
     }
   }
 
   hydrateStateWithData() {
-    const { event } = this.props.data;
+    const { data: { event }, match: { path } } = this.props;
+    if (!path.includes("edit") || !event) return;
     this.setState(prevState => {
       const newState = {
         ...prevState,
@@ -97,58 +95,6 @@ class Event extends Component {
       return newState;
     });
   }
-
-  // handleCloseClick() {
-  //   const closeIcon = withRouter(({ history }) => {
-  //     return (
-  //       <div class="form-header__close" onClick={history.push("/")}>
-  //         <CloseIcon className="form-header__close-icon" />
-  //       </div>
-  //     );
-  //   });
-  //   const colseButton = withRouter(({ history }) => {
-  //     return (
-  //       <button class="btn btn--cancel" onClick={history.push("/")}>
-  //         Отмена
-  //       </button>
-  //     );
-  //   });
-  //   const deleteEventButtonMobile = ({ history }) => {
-  //     return (
-  //       <button
-  //         class="delete-meeting__button"
-  //         onClick={() => {
-  //           // toggle deleteAlertModal
-  //         }}
-  //       >
-  //         Удалить встречу
-  //       </button>
-  //     );
-  //   };
-  //   const deleteEventButtonDescktop = ({ history }) => {
-  //     <button
-  //       class="btn btn--cancel btn--desktop-only"
-  //       onClick={() => {
-  //         // toggle deleteAlertModal
-  //       }}
-  //     >
-  //       Удалить встречу
-  //     </button>;
-  //   };
-  //   const saveButton = withRouter(({ history }) => {
-  //     <button
-  //       class="btn btn--cancel"
-  //       onClick={() => {
-  //         // create new / update
-  //         // toggle modal on home if new created
-  //         // redirect to home
-  //         history.push("/");
-  //       }}
-  //     >
-  //       Сохранить
-  //     </button>;
-  //   });
-  // }
 
   toggleDeleteArlertModal = () => {
     this.setState(prevState => ({
@@ -176,7 +122,6 @@ class Event extends Component {
   };
 
   handleTextInputChange = e => {
-    console.log(e.key);
     const { target: { name, value } } = e;
     console.log(name, value);
     this.setState(prevState => {
@@ -207,8 +152,6 @@ class Event extends Component {
   };
 
   handleDateInputChange = value => {
-    console.log(value, typeof value);
-    console.log(formatDate(moment(value), "LL", "ru"));
     this.setState(prevState => {
       return {
         form: {
@@ -342,7 +285,7 @@ class Event extends Component {
     });
   };
 
-  createMeetingRoomsList = labelText => () => {
+  createMeetingRoomsList = () => () => {
     const handleRoomDeleteClick = () => {
       this.setState(prevState => {
         return {
@@ -354,15 +297,39 @@ class Event extends Component {
         };
       }); // callback needed to populate recommended rooms list
     };
+    const handleRoomClick = id => () => {
+      this.setState(prevState => {
+        return {
+          ...prevState,
+          form: {
+            ...prevState.form,
+            room: prevState.meetingRooms.filter(room => room.id === id)[0]
+          }
+        };
+      });
+    };
+    const { match: { path } } = this.props;
+    const labelText = path.includes("/edit/")
+      ? "Ваша переговорка"
+      : "Рекомендованные переговорки";
     return (
       <Fragment>
         <InputLabel text={labelText} />
         {this.state.meetingRooms.map(room => {
+          // const roomProps = {};
+          const selected =
+            this.state.form.room && this.state.form.room.id === room.id;
           return (
             <RecomendedRoom
+              key={room.id}
               room={room}
-              dateEnd={this.state.form.dateEnd}
-              dateStart={this.state.form.dateStart}
+              dateStart={this.state.form.dateStart.value.format("HH:mm")}
+              dateEnd={this.state.form.dateEnd.value.format("HH:mm")}
+              selected={selected}
+              onClick={() => {
+                !selected && handleRoomClick(room.id)();
+              }}
+              onDeleteClick={handleRoomDeleteClick}
             />
           );
         })}
@@ -378,6 +345,7 @@ class Event extends Component {
       dateEndInput: this.createTimeInput("dateEnd"),
       participantsInput: this.createParticipantsInput(),
       participantsList: this.createParticipantsList(),
+      meetingRoomsList: this.createMeetingRoomsList(),
       onCloseClick: this.createCloseClickHandler(),
       onDeleteClick: this.createDeleteClickHandler(),
       onSubmitClick: this.createSumbitClickHandler()

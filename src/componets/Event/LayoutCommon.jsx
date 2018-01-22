@@ -13,7 +13,7 @@ const LayoutEdit = props => {
     dateEndInput,
     participantsInput,
     participantsList,
-    meetingRoom,
+    meetingRoomsList,
     editPageDeleteSection,
     onCloseClick
   } = props;
@@ -71,10 +71,7 @@ const LayoutEdit = props => {
           <div className="form__column">
             <div className="fields-wrapper">
               <div className="form__field">
-                <label className="formfield-label" htmlFor="meeting">
-                  Ваша переговорка
-                </label>
-                {meetingRoom}
+                <Executioner>{meetingRoomsList}</Executioner>
               </div>
             </div>
           </div>
@@ -96,7 +93,7 @@ LayoutEdit.propTypes = {
   dateEndInput: PropTypes.func.isRequired,
   participantsInput: PropTypes.func.isRequired,
   participantsList: PropTypes.func.isRequired,
-  meetingRoom: PropTypes.func.isRequired,
+  meetingRoomsList: PropTypes.func.isRequired,
   onCloseClick: PropTypes.func.isRequired
   // onDeleteClick: PropTypes.func.isRequired,
   // onSubmitClick: PropTypes.func.isRequired,

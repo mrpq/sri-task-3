@@ -11,7 +11,7 @@ const InputLabel = props => {
 };
 
 InputLabel.propTypes = {
-  id: PropTypes.string.isRequired,
+  id: PropTypes.string,
   text: PropTypes.string.isRequired
 };
 

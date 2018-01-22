@@ -4,10 +4,7 @@ import PropTypes from "prop-types";
 import DayPickerInput from "react-day-picker/DayPickerInput";
 import "react-day-picker/lib/style.css";
 import "./daypicker.css";
-import MomentLocaleUtils, {
-  formatDate,
-  parseDate
-} from "react-day-picker/moment";
+import { formatDate, parseDate } from "react-day-picker/moment";
 
 const DatePickerInput = props => {
   const { value, onChange, dayPickerProps } = props;
