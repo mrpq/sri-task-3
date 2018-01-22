@@ -7,7 +7,7 @@ const Participant = props => {
   const { login, avatarUrl, onDeleteClick } = props;
   const style = avatarUrl ? { backgroundImage: `url("${avatarUrl}")` } : {};
   return (
-    <li class="participants__item">
+    <li className="participants__item">
       <div className="participant">
         <div className="participant__ava" style={style} />
         <div className="participant__name">{login}</div>

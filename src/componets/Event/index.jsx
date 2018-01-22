@@ -1,8 +1,14 @@
 import React, { Component, Fragment } from "react";
-import { withRouter } from "react-router-dom";
+import { Route, Redirect } from "react-router-dom";
 import { graphql } from "react-apollo";
 import gql from "graphql-tag";
+
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate
+} from "react-day-picker/moment";
 import moment from "moment-timezone";
+import "moment/locale/ru";
 
 import InputLabel from "../common/gui/InputLabel";
 import ClearableInput from "../common/gui/ClearableInput";
@@ -11,10 +17,10 @@ import Participant from "../common/gui/Participant";
 import DatePickerInput from "../common/gui/DatePickerInput";
 import RecomendedRoom from "../common/gui/RecomendedRoom";
 import TimeInput from "../common/gui/TimeInput";
-import CloseIcon from "../common/icons/CloseIcon";
+// import CloseIcon from "../common/icons/CloseIcon";
 import LayoutEdit from "./LayoutEdit";
 
-import { ModalDelete } from "../common/Modals";
+// import { ModalDelete } from "../common/Modals";
 
 const EVENT_QUERY = gql`
   query EventQuery($id: ID!) {
@@ -44,25 +50,30 @@ class Event extends Component {
     super(props);
     const now = moment();
     now.minute(round5(now.minute()));
-    const timeStartDefault = now;
-    const timeEndDefault = now.clone().add(15, "minute");
+    const dateStartDefault = now;
+    const dateEndDefault = now.clone().add(15, "minute");
 
     this.state = {
       form: {
         topic: { value: "", errors: null },
         date: { value: "", errors: null },
-        timeStart: { value: timeStartDefault, errors: null },
-        timeEnd: { value: timeEndDefault, errors: null },
+        dateStart: { value: dateStartDefault, errors: null },
+        dateEnd: { value: dateEndDefault, errors: null },
         participantsInput: { value: "", errors: null },
         participantsList: [],
         room: null
       },
-      deleteAlertModal: false
+      deleteAlertModal: false,
+      meetingRooms: []
     };
   }
 
   componentDidUpdate(prevProps) {
     if (prevProps.data.loading !== this.props.data.loading) {
+      const { event } = this.props.data;
+      if (!event) {
+        return;
+      }
       this.hydrateStateWithData();
     }
   }
@@ -71,15 +82,17 @@ class Event extends Component {
     const { event } = this.props.data;
     this.setState(prevState => {
       const newState = {
+        ...prevState,
         form: {
           ...prevState.form,
           topic: { value: event.title },
-          date: { value: moment(event.dateStart) },
-          timeStart: { value: moment(event.dateStart) },
-          timeEnd: { value: moment(event.dateEnd) },
+          date: { value: formatDate(moment(event.dateStart), "LL", "ru") },
+          dateStart: { value: moment(event.dateStart) },
+          dateEnd: { value: moment(event.dateEnd) },
           participantsList: event.users,
           room: event.room
-        }
+        },
+        meetingRooms: [event.room]
       };
       return newState;
     });
@@ -194,12 +207,14 @@ class Event extends Component {
   };
 
   handleDateInputChange = value => {
+    console.log(value, typeof value);
+    console.log(formatDate(moment(value), "LL", "ru"));
     this.setState(prevState => {
       return {
         form: {
           ...prevState.form,
           date: {
-            value: moment(value),
+            value: formatDate(moment(value), "LL", "ru"),
             errors: null
           }
         }
@@ -257,6 +272,8 @@ class Event extends Component {
             value={this.state.form[name].value}
             onChange={this.handleDateInputChange}
             dayPickerProps={{
+              locale: "ru",
+              localeUtils: MomentLocaleUtils,
               disabledDays: [
                 {
                   before: new Date()
@@ -304,6 +321,7 @@ class Event extends Component {
     const deletePraticipantClickHandler = id => () => {
       this.setState(prevState => {
         return {
+          ...prevState,
           form: {
             ...prevState.form,
             participantsList: prevState.form.participantsList.filter(
@@ -316,6 +334,7 @@ class Event extends Component {
     return this.state.form.participantsList.map(participant => {
       return (
         <Participant
+          key={participant.id}
           {...participant}
           onDeleteClick={deletePraticipantClickHandler(participant.id)}
         />
@@ -323,18 +342,56 @@ class Event extends Component {
     });
   };
 
+  createMeetingRoomsList = labelText => () => {
+    const handleRoomDeleteClick = () => {
+      this.setState(prevState => {
+        return {
+          ...prevState,
+          form: {
+            ...prevState.form,
+            room: null
+          }
+        };
+      }); // callback needed to populate recommended rooms list
+    };
+    return (
+      <Fragment>
+        <InputLabel text={labelText} />
+        {this.state.meetingRooms.map(room => {
+          return (
+            <RecomendedRoom
+              room={room}
+              dateEnd={this.state.form.dateEnd}
+              dateStart={this.state.form.dateStart}
+            />
+          );
+        })}
+      </Fragment>
+    );
+  };
+
+  createCommonInputsAndHandlers() {
+    return {
+      topicInput: this.createTopicInput(),
+      dateInput: this.createDateInput(),
+      dateStartInput: this.createTimeInput("dateStart"),
+      dateEndInput: this.createTimeInput("dateEnd"),
+      participantsInput: this.createParticipantsInput(),
+      participantsList: this.createParticipantsList(),
+      onCloseClick: this.createCloseClickHandler(),
+      onDeleteClick: this.createDeleteClickHandler(),
+      onSubmitClick: this.createSumbitClickHandler()
+    };
+  }
   handleEventEdit() {
+    if (this.props.data.event === null) {
+      return <Route render={() => <Redirect to="/" />} />;
+    }
+    const inputsAndHandlers = this.createCommonInputsAndHandlers();
     return (
       <LayoutEdit
-        topicInput={this.createTopicInput()}
-        dateInput={this.createDateInput()}
-        timeStartInput={this.createTimeInput("timeStart")}
-        timeEndInput={this.createTimeInput("timeEnd")}
-        participantsInput={this.createParticipantsInput()}
-        participantsList={this.createParticipantsList()}
-        onCloseClick={this.createCloseClickHandler()}
-        onDeleteClick={this.createDeleteClickHandler()}
-        onSubmitClick={this.createSumbitClickHandler()}
+        title="Редактирование Встречи"
+        {...inputsAndHandlers}
         modal={{
           visible: this.state.deleteAlertModal,
           onConfirmClick: this.createDeleteConfirmClickHandler(),
@@ -346,6 +403,10 @@ class Event extends Component {
   render() {
     const { match: { params: { id } } } = this.props;
     if (id) {
+      const { data: { loading } } = this.props;
+      if (loading) {
+        return <p>Loading</p>;
+      }
       return this.handleEventEdit();
     } else {
       return <p>new...</p>;

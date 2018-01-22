@@ -5,15 +5,7 @@ import CloseIcon from "../icons/CloseIcon";
 
 class ClearableInput extends Component {
   render() {
-    const {
-      placeholder,
-      value,
-      id,
-      name,
-      onChange,
-      clear,
-      onClearClick
-    } = this.props;
+    const { placeholder, value, id, name, onChange, onClearClick } = this.props;
     return (
       <div className="clearable-input">
         <input
@@ -41,8 +33,7 @@ ClearableInput.propTypes = {
   placeholder: PropTypes.string,
   value: PropTypes.string,
   onChange: PropTypes.func.isRequired,
-  onClearClick: PropTypes.func.isRequired,
-  clear: PropTypes.bool
+  onClearClick: PropTypes.func.isRequired
 };
 
 export default ClearableInput;
