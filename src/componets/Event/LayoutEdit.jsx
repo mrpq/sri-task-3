@@ -6,12 +6,13 @@ import LayoutCommon from "./LayoutCommon";
 
 const LayoutEdit = props => {
   const { onDeleteClick, onCloseClick, onSubmitClick, modal } = props;
+  console.log("Edit <<");
   return (
     <Fragment>
       <form onSubmit={e => e.preventDefault()}>
         <LayoutCommon
           {...props}
-          editpageDeleteSection={() => (
+          editPageDeleteSection={() => (
             <Fragment>
               <div className="delete-meeting">
                 <button

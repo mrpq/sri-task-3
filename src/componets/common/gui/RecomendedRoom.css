@@ -1,0 +1,20 @@
+.meeting-output {
+  margin-bottom: 8px;
+}
+.meeting-output--selected {
+  padding-right: 25px;
+}
+
+.meeting-output__hours {
+  min-width: 97px;
+}
+
+.meeting-output__room {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.meeting-output__floor {
+  min-width: 80px;
+}

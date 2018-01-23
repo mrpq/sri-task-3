@@ -17,6 +17,7 @@ import TimeInput from "../common/gui/TimeInput";
 // import CloseIcon from "../common/icons/CloseIcon";
 import LayoutEdit from "./LayoutEdit";
 import { round5 } from "../../utils/";
+import LayoutNew from "./LayoutNew";
 
 // import { ModalDelete } from "../common/Modals";
 
@@ -64,6 +65,57 @@ const EVENT_UPDATE = gql`
     }
   }
 `;
+const EVENT_USER_ADD = gql`
+  mutation AddUserToEvent($id: ID!, $userId: ID!) {
+    addUserToEvent(id: $id, userId: $userId) {
+      id
+      users {
+        login
+      }
+    }
+  }
+`;
+const EVENT_USER_REMOVE = gql`
+  mutation RemoveUserFromEvent($id: ID!, $userId: ID!) {
+    removeUserFromEvent(id: $id, userId: $userId) {
+      id
+      users {
+        login
+      }
+    }
+  }
+`;
+const EVENT_ROOM_CHANGE = gql`
+  mutation ChangeEventRoom($id: ID!, $roomId: ID!) {
+    changeEventRoom(id: $id, roomId: $roomId) {
+      id
+    }
+  }
+`;
+const EVENT_CREATE = gql`
+  mutation createEvent(
+    $title: String!
+    $dateStart: Date!
+    $dateEnd: Date!
+    $usersIds: [ID]!
+    $roomId: ID!
+  ) {
+    createEvent(
+      input: { title: $title, dateStart: $dateStart, dateEnd: $dateEnd }
+      usersIds: $usersIds
+      roomId: $roomId
+    ) {
+      id
+    }
+  }
+`;
+const EVENT_DELETE = gql`
+  mutation removeEvent($id: ID!) {
+    removeEvent(id: $id) {
+      id
+    }
+  }
+`;
 
 class Event extends Component {
   constructor(props) {
@@ -81,28 +133,42 @@ class Event extends Component {
         dateEnd: { value: dateEndDefault, errors: null },
         participantsInput: { value: "", errors: null },
         participantsList: [],
+        addedParticipantsIdsList: [],
+        deletedParticipantsIdsList: [],
         room: null
       },
       deleteAlertModal: false,
-      allRooms: [],
-      recommendedRooms: [],
-      users: []
+      recommendedRooms: []
     };
   }
 
   componentDidMount() {
-    this.hydrateStateWithData(); //rehydrates state if we back
-    // console.log("hello");
+    // this.hydrateStateWithDataOnEdit(); //rehydrates state if we back
   }
   componentDidUpdate(prevProps) {
-    if (prevProps.data.loading !== this.props.data.loading) {
-      this.hydrateStateWithData();
+    const { match: { path } } = this.props;
+    if (path.includes("edit")) {
+      if (
+        prevProps.event.loading === true &&
+        this.props.event.loading === false
+      ) {
+        this.hydrateStateWithDataOnEdit();
+      }
+    } else {
+      if (
+        prevProps.rooms.loading === true &&
+        this.props.rooms.loading === false
+      ) {
+        this.setState({ recommendedRooms: this.getRecommendation() });
+      }
     }
   }
 
-  hydrateStateWithData() {
-    const { data: { event, errors }, match: { path } } = this.props;
-    if (!path.includes("edit") || !event) return;
+  hydrateStateWithDataOnEdit() {
+    const { match: { path } } = this.props;
+    if (!path.includes("edit")) return;
+    console.log(this.props);
+    const { event: { event, errors } } = this.props;
     this.setState(prevState => {
       const newState = {
         ...prevState,
@@ -129,9 +195,10 @@ class Event extends Component {
    * @param {Person[]} db.persons Список всех сотрудников.
    * @returns {Recommendation[]}
    */
-  // data: form.date, members: form.participantsList, db: {}
+  // event: form.date, members: form.participantsList, db: {}
   getRecommendation = (date, members, db) => {
-    return this.props.data.rooms;
+    console.log(this.props.rooms);
+    return this.props.rooms.rooms;
   };
 
   toggleDeleteArlertModal = () => {
@@ -150,26 +217,71 @@ class Event extends Component {
   };
   createDeleteConfirmClickHandler = () => () => {
     // send delete request
-    const { history } = this.props;
-    history.push("/");
-  };
-  createSumbitClickHandler = () => () => {
-    // send update request
-    const { mutate, history, match: { params: { id } } } = this.props;
-    mutate({
-      variables: {
-        id,
-        title: this.state.form.title.value,
-        dateStart: this.state.form.dateStart.value.toISOString(),
-        dateEnd: this.state.form.dateEnd.value.toISOString()
-      }
+    const { removeEvent, match: { params: { id } } } = this.props;
+    removeEvent({ variables: { id } }).then(res => {
+      const { history } = this.props;
+      history.push("/");
     });
+  };
+  createSubmitClickHandler = () => () => {
+    // send update request
+    const {
+      createEvent,
+      updateEvent,
+      addUserToEvent,
+      removeUserFromEvent,
+      changeEventRoom,
+      history,
+      match: { params: { id }, path }
+    } = this.props;
+    const isEditing = path.includes("edit");
+    if (isEditing) {
+      updateEvent({
+        variables: {
+          id,
+          title: this.state.form.title.value,
+          dateStart: this.state.form.dateStart.value.toISOString(),
+          dateEnd: this.state.form.dateEnd.value.toISOString()
+        }
+      });
+      this.state.form.addedParticipantsIdsList.forEach(userId => {
+        addUserToEvent({
+          variables: {
+            id,
+            userId: userId
+          }
+        });
+      });
+      this.state.form.deletedParticipantsIdsList.forEach(userId => {
+        removeUserFromEvent({
+          variables: {
+            id,
+            userId: userId
+          }
+        });
+      });
+      changeEventRoom({
+        variables: {
+          id,
+          roomId: this.state.form.room.id
+        }
+      });
+    } else {
+      createEvent({
+        variables: {
+          title: this.state.form.title.value,
+          dateStart: this.state.form.dateStart.value.toISOString(),
+          dateEnd: this.state.form.dateEnd.value.toISOString(),
+          usersIds: this.state.form.addedParticipantsIdsList,
+          roomId: this.state.form.room.id
+        }
+      });
+    }
     // history.push("/");
   };
 
   handleTextInputChange = e => {
     const { target: { name, value } } = e;
-    console.log(name, value);
     this.setState(prevState => {
       return {
         form: {
@@ -235,7 +347,13 @@ class Event extends Component {
           ...prevState,
           form: {
             ...prevState.form,
-            participantsList: prevState.form.participantsList.concat(user)
+            participantsList: prevState.form.participantsList.concat(user),
+            addedParticipantsIdsList: prevState.form.addedParticipantsIdsList.concat(
+              user.id
+            ),
+            deletedParticipantsIdsList: prevState.form.deletedParticipantsIdsList.filter(
+              _id => _id !== user.id
+            )
           }
         };
       });
@@ -333,6 +451,12 @@ class Event extends Component {
             ...prevState.form,
             participantsList: prevState.form.participantsList.filter(
               participant => participant.id !== id
+            ),
+            deletedParticipantsIdsList: prevState.form.deletedParticipantsIdsList.concat(
+              id
+            ),
+            addedParticipantsIdsList: prevState.form.addedParticipantsIdsList.filter(
+              userId => userId !== id
             )
           }
         };
@@ -364,7 +488,7 @@ class Event extends Component {
     };
     const handleRoomClick = id => () => {
       this.setState(prevState => {
-        const room = prevState.allRooms.filter(room => room.id === id)[0];
+        const room = this.props.rooms.rooms.filter(room => room.id === id)[0];
         return {
           ...prevState,
           form: {
@@ -375,8 +499,8 @@ class Event extends Component {
         };
       });
     };
-    const { match: { path } } = this.props;
-    const labelText = path.includes("/edit/")
+    // const { match: { path } } = this.props;
+    const labelText = this.state.form.room
       ? "Ваша переговорка"
       : "Рекомендованные переговорки";
     return (
@@ -423,18 +547,22 @@ class Event extends Component {
       meetingRoomsList: this.createMeetingRoomsList(),
       onCloseClick: this.createCloseClickHandler(),
       onDeleteClick: this.createDeleteClickHandler(),
-      onSubmitClick: this.createSumbitClickHandler()
+      onSubmitClick: this.createSubmitClickHandler()
     };
   }
+  handleEventCreate() {
+    const commonInputsAndHandlers = this.createCommonInputsAndHandlers();
+    return <LayoutNew {...commonInputsAndHandlers} title="Новая встреча" />;
+  }
   handleEventEdit() {
-    if (this.props.data.event === null) {
+    if (this.props.event.event === null) {
       return <Route render={() => <Redirect to="/" />} />;
     }
-    const inputsAndHandlers = this.createCommonInputsAndHandlers();
+    const commonInputsAndHandlers = this.createCommonInputsAndHandlers();
     return (
       <LayoutEdit
         title="Редактирование Встречи"
-        {...inputsAndHandlers}
+        {...commonInputsAndHandlers}
         modal={{
           visible: this.state.deleteAlertModal,
           onConfirmClick: this.createDeleteConfirmClickHandler(),
@@ -444,31 +572,58 @@ class Event extends Component {
     );
   }
   render() {
-    const { match: { params: { id } } } = this.props;
-    if (id) {
-      const { data: { loading } } = this.props;
+    const { match: { params: { id }, path } } = this.props;
+    const isEditing = path.includes("edit");
+    if (isEditing && id) {
+      const { event: { loading } } = this.props;
       if (loading) {
         return <p>Loading</p>;
       }
       return this.handleEventEdit();
     } else {
-      return <p>new...</p>;
+      return this.handleEventCreate();
     }
   }
 }
 
-const queryOptions = {
+const eventQueryOptions = {
   options: props => ({
     variables: { id: props.match.params.id }
   }),
-  name: "data"
-  // skip: props => !props.match.params.id
+  name: "event",
+  skip: props => !props.match.params.id
 };
 
 Event = compose(
-  graphql(ROOMS_QUERY, { name: "boooo" }),
-  graphql(EVENT_QUERY, queryOptions)
-  // graphql(EVENT_UPDATE, queryOptions)
+  graphql(ROOMS_QUERY, { name: "rooms" }),
+  graphql(EVENT_QUERY, {
+    options: props => ({ variables: { id: props.match.params.id } }),
+    name: "event",
+    skip: props => !props.match.params.id
+  }),
+  graphql(EVENT_UPDATE, {
+    options: props => ({ variables: { id: props.match.params.id } }),
+    name: "updateEvent",
+    skip: props => !props.match.params.id
+  }),
+  graphql(EVENT_USER_ADD, {
+    // options: props => ({ variables: { id: props.match.params.id } }),
+    name: "addUserToEvent",
+    skip: props => !props.match.params.id
+  }),
+  graphql(EVENT_USER_REMOVE, {
+    name: "removeUserFromEvent",
+    skip: props => !props.match.params.id
+  }),
+  graphql(EVENT_ROOM_CHANGE, {
+    name: "changeEventRoom"
+  }),
+  graphql(EVENT_CREATE, {
+    name: "createEvent"
+  }),
+  graphql(EVENT_DELETE, {
+    name: "removeEvent"
+  })
 )(Event);
 
 export default Event;

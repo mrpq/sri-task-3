@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import CloseIcon from "../common/icons/CloseIcon";
 import Executioner from "../common/Executioner";
 
-const LayoutEdit = props => {
+const LayoutCommon = props => {
   const {
     title,
     titleInput,
@@ -17,6 +17,7 @@ const LayoutEdit = props => {
     editPageDeleteSection,
     onCloseClick
   } = props;
+  console.log("common<<<< ", props);
   return (
     <div className="form-container__row-1">
       <div className="form-centering-container">
@@ -85,7 +86,7 @@ const LayoutEdit = props => {
   );
 };
 
-LayoutEdit.propTypes = {
+LayoutCommon.propTypes = {
   title: PropTypes.string.isRequired,
   titleInput: PropTypes.func.isRequired,
   dateInput: PropTypes.func.isRequired,
@@ -104,4 +105,4 @@ LayoutEdit.propTypes = {
   // })
 };
 
-export default LayoutEdit;
+export default LayoutCommon;

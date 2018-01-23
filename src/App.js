@@ -12,6 +12,10 @@ const client1 = new ApolloClient({
   link: new HttpLink({
     uri: "http://localhost:3000/graphgl"
   }),
+  // link: new BatchHttpLink({
+  //   uri: "http://localhost:3000/graphgl"
+  // }),
+
   cache: new InMemoryCache()
 });
 

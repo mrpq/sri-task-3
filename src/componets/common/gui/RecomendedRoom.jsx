@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import cn from "classnames";
 
+import "./RecomendedRoom.css";
 import CloseIcon from "../icons/CloseIcon";
 
 const RecomendedRoom = props => {

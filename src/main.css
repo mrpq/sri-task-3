@@ -1666,6 +1666,7 @@ input:focus ~ .clearable-input__clear--visible {
   padding-right: 25px;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (min-width: 960px) {
