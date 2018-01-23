@@ -1130,8 +1130,8 @@ input:focus ~ .clearable-input__clear--visible {
 }
 
 .dropdown-list {
-  display: none;
-  z-index: 100;
+  /* display: none; */
+  z-index: 10000;
   margin: 0;
   padding: 0;
   text-indent: 0;
@@ -1145,9 +1145,9 @@ input:focus ~ .clearable-input__clear--visible {
   border-radius: 4px;
 }
 
-.dropdown-field input:focus ~ .dropdown-list {
+/* .dropdown-field input:focus ~ .dropdown-list {
   display: block;
-}
+} */
 
 .dropdown-item {
   background-color: #fff;

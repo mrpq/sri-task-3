@@ -8,7 +8,6 @@ import { formatDate, parseDate } from "react-day-picker/moment";
 
 const DatePickerInput = props => {
   const { value, onChange, dayPickerProps } = props;
-  console.log(value, typeof value);
   return (
     <DayPickerInput
       // onDayClick={this.handleDayClick}

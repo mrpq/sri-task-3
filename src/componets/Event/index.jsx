@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from "react";
 import { Route, Redirect } from "react-router-dom";
-import { graphql } from "react-apollo";
+import { graphql, compose } from "react-apollo";
 import gql from "graphql-tag";
 
 import MomentLocaleUtils, { formatDate } from "react-day-picker/moment";
@@ -9,13 +9,14 @@ import "moment/locale/ru";
 
 import InputLabel from "../common/gui/InputLabel";
 import ClearableInput from "../common/gui/ClearableInput";
-import ParticipantsInput from "../common/gui/ParticipantsInput";
+import ParticipantsDropdown from "./ParticipantsDropdown";
 import Participant from "../common/gui/Participant";
 import DatePickerInput from "../common/gui/DatePickerInput";
 import RecomendedRoom from "../common/gui/RecomendedRoom";
 import TimeInput from "../common/gui/TimeInput";
 // import CloseIcon from "../common/icons/CloseIcon";
 import LayoutEdit from "./LayoutEdit";
+import { round5 } from "../../utils/";
 
 // import { ModalDelete } from "../common/Modals";
 
@@ -38,9 +39,21 @@ const EVENT_QUERY = gql`
     }
   }
 `;
-const round5 = x => {
-  return Math.ceil(x / 5) * 5;
-};
+const EVENT_UPDATE = gql`
+  mutation UpdateEvent(
+    $id: ID!
+    $title: String!
+    $dateStart: Date!
+    $dateEnd: Date!
+  ) {
+    updateEvent(
+      id: $id
+      input: { title: $title, dateStart: $dateStart, dateEnd: $dateEnd }
+    ) {
+      id
+    }
+  }
+`;
 
 class Event extends Component {
   constructor(props) {
@@ -52,7 +65,7 @@ class Event extends Component {
     const dateEndDefault = now.clone().add(15, "minute");
     this.state = {
       form: {
-        topic: { value: "", errors: null },
+        title: { value: "", errors: null },
         date: { value: "", errors: null },
         dateStart: { value: dateStartDefault, errors: null },
         dateEnd: { value: dateEndDefault, errors: null },
@@ -61,7 +74,8 @@ class Event extends Component {
         room: null
       },
       deleteAlertModal: false,
-      meetingRooms: []
+      meetingRooms: [],
+      users: []
     };
   }
 
@@ -83,7 +97,7 @@ class Event extends Component {
         ...prevState,
         form: {
           ...prevState.form,
-          topic: { value: event.title },
+          title: { value: event.title },
           date: { value: formatDate(moment(event.dateStart), "LL", "ru") },
           dateStart: { value: moment(event.dateStart) },
           dateEnd: { value: moment(event.dateEnd) },
@@ -117,8 +131,16 @@ class Event extends Component {
   };
   createSumbitClickHandler = () => () => {
     // send update request
-    const { history } = this.props;
-    history.push("/");
+    const { mutate, history, match: { params: { id } } } = this.props;
+    mutate({
+      variables: {
+        id,
+        title: this.state.form.title.value,
+        dateStart: this.state.form.dateStart.value.toISOString(),
+        dateEnd: this.state.form.dateEnd.value.toISOString()
+      }
+    });
+    // history.push("/");
   };
 
   handleTextInputChange = e => {
@@ -179,10 +201,27 @@ class Event extends Component {
     });
   };
 
-  createTopicInput = options => {
+  handleDropdownItemClick = user => {
+    const userAlreadyInList = this.state.form.participantsList.find(
+      item => item.id === user.id
+    );
+    if (!userAlreadyInList) {
+      this.setState(prevState => {
+        return {
+          ...prevState,
+          form: {
+            ...prevState.form,
+            participantsList: prevState.form.participantsList.concat(user)
+          }
+        };
+      });
+    }
+  };
+
+  createTitleInput = options => {
     return () => {
-      const id = "topic";
-      const name = "topic";
+      const id = "title";
+      const name = "title";
       const labelText = "Тема";
       return (
         <Fragment>
@@ -247,16 +286,17 @@ class Event extends Component {
     const name = "participantsInput";
     const labelText = "Участники";
     return (
-      <Fragment>
-        <InputLabel id={id} text={labelText} />
-        <ParticipantsInput
-          id={id}
-          name={name}
-          value={this.state.form[name].value}
-          onChange={this.handleTextInputChange}
-          onClearClick={this.handleClearClick(name)}
-        />
-      </Fragment>
+      <ParticipantsDropdown
+        id={id}
+        labelText={labelText}
+        name={name}
+        value={this.state.form[name].value}
+        onChange={this.handleTextInputChange}
+        onClearClick={this.handleClearClick(name)}
+        onDropdownItemClick={this.handleDropdownItemClick}
+        placeholder="Например, Рик Санчез"
+        usersAlreadyInList={this.state.form.participantsList}
+      />
     );
   };
 
@@ -319,12 +359,20 @@ class Event extends Component {
           // const roomProps = {};
           const selected =
             this.state.form.room && this.state.form.room.id === room.id;
+          let dateStart = "";
+          let dateEnd = "";
+          if (this.state.form.dateStart.value) {
+            dateStart = this.state.form.dateStart.value.format("HH:mm");
+          }
+          if (this.state.form.dateEnd.value) {
+            dateEnd = this.state.form.dateEnd.value.format("HH:mm");
+          }
           return (
             <RecomendedRoom
               key={room.id}
               room={room}
-              dateStart={this.state.form.dateStart.value.format("HH:mm")}
-              dateEnd={this.state.form.dateEnd.value.format("HH:mm")}
+              dateStart={dateStart}
+              dateEnd={dateEnd}
               selected={selected}
               onClick={() => {
                 !selected && handleRoomClick(room.id)();
@@ -339,7 +387,7 @@ class Event extends Component {
 
   createCommonInputsAndHandlers() {
     return {
-      topicInput: this.createTopicInput(),
+      titleInput: this.createTitleInput(),
       dateInput: this.createDateInput(),
       dateStartInput: this.createTimeInput("dateStart"),
       dateEndInput: this.createTimeInput("dateEnd"),
@@ -387,6 +435,9 @@ const queryOptions = {
   skip: props => !props.match.params.id
 };
 
-Event = graphql(EVENT_QUERY, queryOptions)(Event);
+Event = compose(
+  graphql(EVENT_QUERY, queryOptions),
+  graphql(EVENT_UPDATE, queryOptions)
+)(Event);
 
 export default Event;

@@ -7,7 +7,7 @@ import Executioner from "../common/Executioner";
 const LayoutEdit = props => {
   const {
     title,
-    topicInput,
+    titleInput,
     dateInput,
     dateStartInput,
     dateEndInput,
@@ -32,7 +32,7 @@ const LayoutEdit = props => {
           <div className="form__row row-1">
             <div className="form__column">
               <div className="form__field">
-                <Executioner>{topicInput}</Executioner>
+                <Executioner>{titleInput}</Executioner>
               </div>
             </div>
             <div className="form__column">
@@ -87,7 +87,7 @@ const LayoutEdit = props => {
 
 LayoutEdit.propTypes = {
   title: PropTypes.string.isRequired,
-  topicInput: PropTypes.func.isRequired,
+  titleInput: PropTypes.func.isRequired,
   dateInput: PropTypes.func.isRequired,
   dateStartInput: PropTypes.func.isRequired,
   dateEndInput: PropTypes.func.isRequired,

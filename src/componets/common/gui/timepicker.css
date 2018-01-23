@@ -18,6 +18,7 @@
   height: auto;
   color: #000;
 }
+
 @media (min-width: 960px) {
   .rc-time-picker-input,
   .rc-time-picker-panel-input {
@@ -35,6 +36,9 @@
 }
 .rc-time-picker-panel-input {
   border: 0;
+}
+.rc-time-picker-panel-input-invalid {
+  border: 1px solid red;
 }
 .rc-time-picker-panel-select {
   width: 54px;

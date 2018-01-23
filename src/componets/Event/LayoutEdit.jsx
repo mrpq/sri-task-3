@@ -59,7 +59,7 @@ const LayoutEdit = props => {
 };
 
 LayoutEdit.propTypes = {
-  // topicInput: PropTypes.func.isRequired,
+  // titleInput: PropTypes.func.isRequired,
   // dateInput: PropTypes.func.isRequired,
   // dateStartInput: PropTypes.func.isRequired,
   // dateEndInput: PropTypes.func.isRequired,

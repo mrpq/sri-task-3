@@ -12,7 +12,7 @@ class Executioner extends Component {
 
 const LayoutEdit = props => {
   const {
-    topicInput,
+    titleInput,
     dateInput,
     dateStartInput,
     dateEndInput,
@@ -45,7 +45,7 @@ const LayoutEdit = props => {
                 <input type="text" placeholder="Тема встречи">
                 <div className="clearable-input__clear clearable-input__clear--visible"></div>
               </div> */}
-                    <Executioner>{topicInput}</Executioner>
+                    <Executioner>{titleInput}</Executioner>
                   </div>
                 </div>
                 <div className="form__column">
@@ -137,7 +137,7 @@ const LayoutEdit = props => {
 };
 
 LayoutEdit.propTypes = {
-  topicInput: PropTypes.func.isRequired,
+  titleInput: PropTypes.func.isRequired,
   dateInput: PropTypes.func.isRequired,
   dateStartInput: PropTypes.func.isRequired,
   dateEndInput: PropTypes.func.isRequired,
