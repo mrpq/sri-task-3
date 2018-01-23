@@ -44,8 +44,7 @@ class ParticipantsDropdown extends Component {
       onChange,
       onClearClick,
       onDropdownItemClick,
-      data: { users },
-      usersAlreadyInList
+      data: { users }
     } = this.props;
     return (
       <Fragment>
@@ -73,7 +72,8 @@ ParticipantsDropdown.propTypes = {
   onChange: PropTypes.func.isRequired,
   onClearClick: PropTypes.func.isRequired,
   onDropdownItemClick: PropTypes.func.isRequired,
-  placeholder: PropTypes.string
+  placeholder: PropTypes.string,
+  usersAlreadyInList: PropTypes.array
 };
 
 ParticipantsDropdown = graphql(USERS_QUERY)(ParticipantsDropdown);

@@ -39,6 +39,16 @@ const EVENT_QUERY = gql`
     }
   }
 `;
+const ROOMS_QUERY = gql`
+  query RoomsQuery {
+    rooms {
+      id
+      title
+      capacity
+      floor
+    }
+  }
+`;
 const EVENT_UPDATE = gql`
   mutation UpdateEvent(
     $id: ID!
@@ -74,7 +84,8 @@ class Event extends Component {
         room: null
       },
       deleteAlertModal: false,
-      meetingRooms: [],
+      allRooms: [],
+      recommendedRooms: [],
       users: []
     };
   }
@@ -90,7 +101,7 @@ class Event extends Component {
   }
 
   hydrateStateWithData() {
-    const { data: { event }, match: { path } } = this.props;
+    const { data: { event, errors }, match: { path } } = this.props;
     if (!path.includes("edit") || !event) return;
     this.setState(prevState => {
       const newState = {
@@ -104,11 +115,24 @@ class Event extends Component {
           participantsList: event.users,
           room: event.room
         },
-        meetingRooms: [event.room]
+        recommendedRooms: [event.room]
       };
       return newState;
     });
   }
+  /**
+   * @param {EventDate} date Дата планируемой встречи.
+   * @param {Person[]} members Участники планируемой встречи.
+   * @param {Object} db
+   * @param {Event[]} db.events Список все встреч.
+   * @param {Room[]} db.rooms Список всех переговорок.
+   * @param {Person[]} db.persons Список всех сотрудников.
+   * @returns {Recommendation[]}
+   */
+  // data: form.date, members: form.participantsList, db: {}
+  getRecommendation = (date, members, db) => {
+    return this.props.data.rooms;
+  };
 
   toggleDeleteArlertModal = () => {
     this.setState(prevState => ({
@@ -333,18 +357,21 @@ class Event extends Component {
           form: {
             ...prevState.form,
             room: null
-          }
+          },
+          recommendedRooms: this.getRecommendation()
         };
       }); // callback needed to populate recommended rooms list
     };
     const handleRoomClick = id => () => {
       this.setState(prevState => {
+        const room = prevState.allRooms.filter(room => room.id === id)[0];
         return {
           ...prevState,
           form: {
             ...prevState.form,
-            room: prevState.meetingRooms.filter(room => room.id === id)[0]
-          }
+            room
+          },
+          recommendedRooms: [room]
         };
       });
     };
@@ -355,7 +382,7 @@ class Event extends Component {
     return (
       <Fragment>
         <InputLabel text={labelText} />
-        {this.state.meetingRooms.map(room => {
+        {this.state.recommendedRooms.map(room => {
           // const roomProps = {};
           const selected =
             this.state.form.room && this.state.form.room.id === room.id;
@@ -431,13 +458,17 @@ class Event extends Component {
 }
 
 const queryOptions = {
-  options: props => ({ variables: { id: props.match.params.id } }),
-  skip: props => !props.match.params.id
+  options: props => ({
+    variables: { id: props.match.params.id }
+  }),
+  name: "data"
+  // skip: props => !props.match.params.id
 };
 
 Event = compose(
-  graphql(EVENT_QUERY, queryOptions),
-  graphql(EVENT_UPDATE, queryOptions)
+  graphql(ROOMS_QUERY, { name: "boooo" }),
+  graphql(EVENT_QUERY, queryOptions)
+  // graphql(EVENT_UPDATE, queryOptions)
 )(Event);
 
 export default Event;
