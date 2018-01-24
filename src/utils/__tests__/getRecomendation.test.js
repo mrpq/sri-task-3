@@ -40,10 +40,10 @@ const persons = [
 ];
 
 const rooms = [
-  makeRoom(0, "room-1", 2, 3),
+  makeRoom(0, "room-0", 2, 3),
   makeRoom(1, "room-1", 2, 3),
   makeRoom(2, "room-2", 4, 4),
-  makeRoom(3, "room-2", 4, 5)
+  makeRoom(3, "room-3", 4, 5)
 ];
 ////
 test("Test countTotalSteps 1", () => {
@@ -68,7 +68,7 @@ test("Test isRoomFree 1", () => {
     makeEvent(2, "e-2", [], makeEventDate([10, 0], [11, 0]), 1)
   ];
   const result = isRoomFree(
-    1,
+    rooms[1],
     makeTime(...[9, 1]),
     makeTime(...[9, 59]),
     events
@@ -81,7 +81,7 @@ test("Test isRoomFree 2", () => {
     makeEvent(2, "e-2", [], makeEventDate([10, 0], [11, 0]), 1)
   ];
   const result = isRoomFree(
-    1,
+    rooms[1],
     makeTime(...[8, 59]),
     makeTime(...[9, 59]),
     events
@@ -94,7 +94,7 @@ test("Test isRoomFree 3", () => {
     makeEvent(2, "e-2", [], makeEventDate([10, 0], [11, 0]), 1)
   ];
   const result = isRoomFree(
-    1,
+    rooms[1],
     makeTime(...[9, 0]),
     makeTime(...[10, 0]),
     events
@@ -108,7 +108,7 @@ test("Test isRoomFree 4", () => {
     makeEvent(2, "e-2", [], makeEventDate([9, 30], [9, 40]), 1)
   ];
   const result = isRoomFree(
-    1,
+    rooms[1],
     makeTime(...[9, 0]),
     makeTime(...[10, 0]),
     events
@@ -121,7 +121,7 @@ test("Test isRoomFree 5", () => {
     makeEvent(2, "e-2", [], makeEventDate([10, 0], [22, 0]), 1)
   ];
   const result = isRoomFree(
-    1,
+    rooms[1],
     makeTime(...[7, 59]),
     makeTime(...[9, 0]),
     events
@@ -131,7 +131,7 @@ test("Test isRoomFree 5", () => {
 test("Test isRoomFree 6 - empty events", () => {
   const events = [];
   const result = isRoomFree(
-    1,
+    rooms[1],
     makeTime(...[8, 59]),
     makeTime(...[10, 0]),
     events
@@ -193,7 +193,7 @@ test("Test getRecommendation 1 - closest room #1", () => {
   const db = {
     events: [
       makeEvent(1, "e-1", Array(2), makeEventDate([9, 0], [10, 0]), 0),
-      makeEvent(1, "e-1", Array(2), makeEventDate([9, 0], [10, 0]), 2)
+      makeEvent(2, "e-1", Array(2), makeEventDate([9, 0], [10, 0]), 2)
     ],
     rooms: [rooms[0], rooms[2]],
     persons: persons
@@ -201,32 +201,18 @@ test("Test getRecommendation 1 - closest room #1", () => {
   expect(getRecommendation(date, members, db)[0].room).toBe("0");
   expect(getRecommendation(date, members, db)[1].room).toBe("2");
 });
-test("Test getRecommendation 1 - closest room #1", () => {
-  const date = makeEventDate([8, 0], [9, 0]);
-  const members = [persons[0], persons[1]];
-  const db = {
-    events: [
-      makeEvent(1, "e-1", Array(2), makeEventDate([9, 0], [10, 0]), 0),
-      makeEvent(1, "e-1", Array(2), makeEventDate([9, 0], [10, 0]), 2)
-    ],
-    rooms: [rooms[0], rooms[2]],
-    persons: persons
-  };
-  expect(getRecommendation(date, members, db)[0].room).toBe("0");
-  expect(getRecommendation(date, members, db)[1].room).toBe("2");
-});
-test("Test getRecommendation 1 - closest room #1", () => {
+test("Test getRecommendation 1 - sort free first", () => {
   const date = makeEventDate([8, 0], [9, 0]);
   const members = [persons[0], persons[3]];
   const db = {
     events: [
-      makeEvent(1, "e-1", Array(2), makeEventDate([9, 0], [10, 0]), 0),
-      // makeEvent(1, "e-1", Array(2), makeEventDate([8, 0], [10, 0]), 1),
-      makeEvent(1, "e-1", Array(2), makeEventDate([9, 0], [10, 0]), 2)
+      makeEvent(1, "e-1", Array(2), makeEventDate([8, 0], [10, 0]), 1),
+      makeEvent(2, "e-1", Array(2), makeEventDate([8, 0], [10, 0]), 2),
+      makeEvent(3, "e-1", Array(2), makeEventDate([10, 0], [11, 0]), 3),
+      makeEvent(3, "e-1", Array(2), makeEventDate([8, 0], [11, 0]), 0)
     ],
     rooms: rooms,
     persons: persons
   };
-  expect(getRecommendation(date, members, db)[0].room).toBe("0");
-  expect(getRecommendation(date, members, db)[1].room).toBe("2");
+  expect(getRecommendation(date, members, db)[0].room).toBe("3");
 });
