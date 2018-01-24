@@ -216,3 +216,33 @@ test("Test getRecommendation 1 - sort free first", () => {
   };
   expect(getRecommendation(date, members, db)[0].room).toBe("3");
 });
+// ////////
+test("Test ce first", () => {
+  const persons1 = [
+    makePerson("person-1", 1),
+    makePerson("person-2", 1),
+    makePerson("person-3", 1),
+    makePerson("person-4", 1)
+  ];
+
+  const rooms1 = [
+    makeRoom(0, "room-0", 7, 1),
+    makeRoom(1, "room-1", 5, 1),
+    makeRoom(2, "room-2", 3, 1),
+    makeRoom(3, "room-3", 2, 1)
+  ];
+
+  const date = makeEventDate([8, 0], [9, 0]);
+  const members = [persons[0], persons[3]];
+  const db = {
+    events: [
+      makeEvent(0, "e-1", Array(5), makeEventDate([8, 0], [14, 0]), 0),
+      makeEvent(1, "e-1", Array(2), makeEventDate([8, 0], [14, 0]), 0),
+      makeEvent(2, "e-1", Array(3), makeEventDate([8, 0], [11, 0]), 1),
+      makeEvent(3, "e-1", Array(2), makeEventDate([11, 0], [13, 0]), 2)
+    ],
+    rooms: rooms1,
+    persons: persons1
+  };
+  expect(getRecommendation(date, members, db)).toBe("3");
+});

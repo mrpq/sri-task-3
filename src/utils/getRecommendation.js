@@ -35,6 +35,16 @@ export const getRecommendation = (date, members, db) => {
       );
       return recommendations;
     } else {
+      for (i = 0; i <= roomsOk.length; i += 1) {
+        const room = roomsOk[i];
+        const roomEventsForDate = db.events
+          .filter(event => event.room == room.id)
+          .filter(
+            event =>
+              event.date.start >= date.start && event.date.end <= date.end
+          );
+        const recommendations = iter(swaps);
+      }
     }
   };
   return iter([], db.events);

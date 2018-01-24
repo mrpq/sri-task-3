@@ -56,25 +56,6 @@ class Recommendation {
     this.roomsSwap = [];
   }
 }
-const getRecommendation = (date, members, db) => {
-  const roomsOk = db.rooms
-    .filter(room => isRoomSizeOk(members, room))
-    .sort((a, b) => countTotalSteps(members, a) - countTotalSteps(members, b))
-    .sort((a, b) => {
-      const aFree = isRoomFree(a, date.start, date.end, db.events);
-      const bFree = isRoomFree(b, date.start, date.end, db.events);
-      console.log(a.id, " ", aFree);
-      console.log(b.id, " ", bFree);
-      if (aFree === bFree) return 0;
-      if (aFree && !bFree) return -1;
-      if (!aFree && bFree) return 1;
-    });
-  console.log(roomsOk);
-  const recommendations = roomsOk.map(
-    room => new Recommendation(date, room.id, [])
-  );
-  return recommendations;
-};
 
 /**
  *
@@ -114,17 +95,101 @@ const countTotalSteps = (members, room) => {
   }, 0);
   return result;
 };
+const freeFirst = (roomA, roomB, date, db) => {
+  const aFree = isRoomFree(roomA, date.start, date.end, db.events);
+  const bFree = isRoomFree(roomB, date.start, date.end, db.events);
+  if (aFree === bFree) return 0;
+  if (aFree && !bFree) return -1;
+  if (!aFree && bFree) return 1;
+};
 
-const date = makeEventDate([8, 0], [9, 0]);
+const persons1 = [
+  makePerson("person-1", 1),
+  makePerson("person-2", 1),
+  makePerson("person-3", 1),
+  makePerson("person-4", 1),
+  makePerson("person-5", 1),
+  makePerson("person-6", 1),
+  makePerson("person-7", 1)
+];
+
+const rooms1 = [
+  makeRoom(0, "room-0", 7, 1),
+  makeRoom(1, "room-1", 5, 1),
+  makeRoom(2, "room-2", 3, 1),
+  makeRoom(3, "room-3", 2, 1)
+];
+
+const getRecommendation = (date, members, db) => {
+  const iter = (swaps, date, members, events) => {
+    const roomsOk = db.rooms
+      .filter(room => isRoomSizeOk(members, room))
+      .sort((a, b) => freeFirst(a, b, date, db))
+      .sort(
+        (a, b) => countTotalSteps(members, a) - countTotalSteps(members, b)
+      );
+    const freeRooms = roomsOk.filter(room =>
+      isRoomFree(room, date.start, date.end, db.events)
+    );
+    if (roomsOk.lenght === 0) return null;
+    if (freeRooms.length > 0) {
+      return { freeRooms };
+    } else {
+      const smallerRooms = roomsOk;
+      // .filter(
+      //   room => room.capacity <= members.length
+      // );
+      for (i = 0; i <= smallerRooms.length - 1; i += 1) {
+        const room = smallerRooms[i];
+        const roomEventsForDate = db.events
+          .filter(event => event.room == room.id)
+          .filter(event => {
+            const res =
+              event.date.start >= date.start && event.date.end <= date.end;
+            // console.log(res);
+            return res;
+          });
+        let recommendations = [];
+        try {
+          const recommendations = roomEventsForDate.reduce((acc, event) => {
+            const freeRooms = iter(swaps, event.date, event.members, db.events);
+            if (freeRooms.freeRooms.length > 0) {
+              return [
+                ...acc,
+                { event: event.id, room: freeRooms.freeRooms[0].id }
+              ];
+            } else if (freeRooms.swaps.length > 0) {
+              return [...acc, ...freeRooms.swaps];
+            } else {
+              throw new Error("Deadend");
+            }
+          }, []);
+          // swaps = swaps.concat(recommendations);
+          return { freeRooms: [], swaps: recommendations };
+        } catch (e) {
+          console.log(e.message);
+          return [];
+        }
+      }
+      console.log(swaps);
+      return { swaps };
+    }
+  };
+  const result = iter([], date, members, db.events);
+  console.log(result);
+};
+
+const date = makeEventDate([8, 0], [14, 0]);
 const members = [persons[0], persons[3]];
 const db = {
   events: [
-    makeEvent(1, "e-1", Array(2), makeEventDate([8, 0], [10, 0]), 1),
-    makeEvent(2, "e-1", Array(2), makeEventDate([8, 0], [10, 0]), 2),
-    makeEvent(3, "e-1", Array(2), makeEventDate([10, 0], [11, 0]), 3),
-    makeEvent(3, "e-1", Array(2), makeEventDate([8, 0], [11, 0]), 0)
+    makeEvent(0, "e-1", Array(5), makeEventDate([8, 0], [12, 0]), 0),
+    makeEvent(1, "e-2", Array(2), makeEventDate([12, 0], [14, 0]), 0),
+    makeEvent(2, "e-3", Array(3), makeEventDate([8, 0], [11, 0]), 1),
+    makeEvent(3, "e-4", Array(2), makeEventDate([11, 0], [13, 0]), 2)
   ],
-  rooms: rooms,
-  persons: persons
+  rooms: rooms1,
+  persons: persons1
 };
-getRecommendation(date, members, db);
+
+getRecommendation(date, persons1, db);
