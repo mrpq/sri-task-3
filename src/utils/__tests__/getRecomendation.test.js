@@ -48,17 +48,17 @@ const rooms = [
 ////
 test("Test countTotalSteps 1", () => {
   const members = [persons[0], persons[1]];
-  const result = countTotalSteps(members, rooms[0]);
+  const result = countTotalSteps(members, rooms[0].floor);
   expect(result).toBe(4);
 });
 test("Test countTotalSteps 2", () => {
   const members = [persons[0], persons[1]];
-  const result = countTotalSteps(members, rooms[2]);
+  const result = countTotalSteps(members, rooms[2].floor);
   expect(result).toBe(6);
 });
 test("Test countTotalSteps 4", () => {
   const members = [persons[0], persons[3]];
-  const result = countTotalSteps(members, rooms[3]);
+  const result = countTotalSteps(members, rooms[3].floor);
   expect(result).toBe(5);
 });
 ////
@@ -67,12 +67,11 @@ test("Test isRoomFree 1", () => {
     makeEvent(1, "e-1", [], makeEventDate([8, 0], [9, 0]), 1),
     makeEvent(2, "e-2", [], makeEventDate([10, 0], [11, 0]), 1)
   ];
-  const result = isRoomFree(
-    rooms[1],
-    makeTime(...[9, 1]),
-    makeTime(...[9, 59]),
-    events
-  );
+  const date = {
+    start: makeTime(...[9, 1]),
+    end: makeTime(...[9, 59])
+  };
+  const result = isRoomFree(date, events)(rooms[1]);
   expect(result).toBe(true);
 });
 test("Test isRoomFree 2", () => {
@@ -80,12 +79,11 @@ test("Test isRoomFree 2", () => {
     makeEvent(1, "e-1", [], makeEventDate([8, 0], [9, 0]), 1),
     makeEvent(2, "e-2", [], makeEventDate([10, 0], [11, 0]), 1)
   ];
-  const result = isRoomFree(
-    rooms[1],
-    makeTime(...[8, 59]),
-    makeTime(...[9, 59]),
-    events
-  );
+  const date = {
+    start: makeTime(...[8, 59]),
+    end: makeTime(...[9, 59])
+  };
+  const result = isRoomFree(date, events)(rooms[1]);
   expect(result).toBe(false);
 });
 test("Test isRoomFree 3", () => {
@@ -93,12 +91,11 @@ test("Test isRoomFree 3", () => {
     makeEvent(1, "e-1", [], makeEventDate([8, 0], [9, 0]), 1),
     makeEvent(2, "e-2", [], makeEventDate([10, 0], [11, 0]), 1)
   ];
-  const result = isRoomFree(
-    rooms[1],
-    makeTime(...[9, 0]),
-    makeTime(...[10, 0]),
-    events
-  );
+  const date = {
+    start: makeTime(...[9, 0]),
+    end: makeTime(...[10, 0])
+  };
+  const result = isRoomFree(date, events)(rooms[1]);
   expect(result).toBe(true);
 });
 test("Test isRoomFree 4", () => {
@@ -107,12 +104,11 @@ test("Test isRoomFree 4", () => {
     makeEvent(2, "e-2", [], makeEventDate([10, 0], [11, 0]), 1),
     makeEvent(2, "e-2", [], makeEventDate([9, 30], [9, 40]), 1)
   ];
-  const result = isRoomFree(
-    rooms[1],
-    makeTime(...[9, 0]),
-    makeTime(...[10, 0]),
-    events
-  );
+  const date = {
+    start: makeTime(...[9, 0]),
+    end: makeTime(...[10, 0])
+  };
+  const result = isRoomFree(date, events)(rooms[1]);
   expect(result).toBe(false);
 });
 test("Test isRoomFree 5", () => {
@@ -120,29 +116,27 @@ test("Test isRoomFree 5", () => {
     makeEvent(1, "e-1", [], makeEventDate([9, 0], [10, 0]), 1),
     makeEvent(2, "e-2", [], makeEventDate([10, 0], [22, 0]), 1)
   ];
-  const result = isRoomFree(
-    rooms[1],
-    makeTime(...[7, 59]),
-    makeTime(...[9, 0]),
-    events
-  );
+  const date = {
+    start: makeTime(...[7, 59]),
+    end: makeTime(...[9, 0])
+  };
+  const result = isRoomFree(date, events)(rooms[1]);
   expect(result).toBe(false);
 });
 test("Test isRoomFree 6 - empty events", () => {
   const events = [];
-  const result = isRoomFree(
-    rooms[1],
-    makeTime(...[8, 59]),
-    makeTime(...[10, 0]),
-    events
-  );
+  const date = {
+    start: makeTime(...[8, 59]),
+    end: makeTime(...[10, 0])
+  };
+  const result = isRoomFree(date, events)(rooms[1]);
   expect(result).toBe(true);
 });
 
 ///////
 test("Test isRoomSizeOk 1", () => {
   const persons = Array(1);
-  const result = isRoomSizeOk(persons, rooms[1]);
+  const result = isRoomSizeOk(persons)(rooms[1]);
   expect(result).toBe(true);
 });
 test("Test isRoomSizeOk 2 - not ok if to many persons", () => {
@@ -152,7 +146,7 @@ test("Test isRoomSizeOk 2 - not ok if to many persons", () => {
 });
 test("Test isRoomSizeOk 3 - edge case", () => {
   const persons = Array(2);
-  const result = isRoomSizeOk(persons, rooms[1]);
+  const result = isRoomSizeOk(persons)(rooms[1]);
   expect(result).toBe(true);
 });
 ///////////
@@ -224,7 +218,7 @@ test.skip("Test getRecommendation 1 - sort free first", () => {
   expect(getRecommendation(date, members, db)[0].room).toBe("3");
 });
 // ////////
-test.skip("Test qwerty", () => {
+test("Test recommendations #1", () => {
   const persons = [
     makePerson("person-1", 1),
     makePerson("person-2", 1),
@@ -258,7 +252,7 @@ test.skip("Test qwerty", () => {
   const result = getRecommendation(date, persons, db);
   expect(result[0].swap.length).toBe(3);
 });
-test("Test qwerty 2", () => {
+test("Test recommendations #1", () => {
   const persons = [
     makePerson("person-1", 1),
     makePerson("person-2", 1),

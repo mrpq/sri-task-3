@@ -13,18 +13,13 @@ export const getRecommendation = (date, members, db) => {
   const getSwapsForEvent = (event, room, roomsList, swaps) => {
     // console.log(event.title);
     const roomsOk = roomsList
-      .filter(room => isRoomSizeOk(event.members, room))
-      .sort((a, b) => freeFirst(a, b, event.date, db))
-      .sort(
-        (a, b) =>
-          countTotalSteps(event.members, a) - countTotalSteps(event.members, b)
-      );
+      .filter(isRoomSizeOk(event.members))
+      .sort(freeFirst(event.date, db))
+      .sort(sortByTotalSteps(event.members));
     if (roomsOk.length === 0) {
       return { result: false, swaps };
     }
-    const freeRooms = roomsOk.filter(room =>
-      isRoomFree(room, event.date.start, event.date.end, db.events)
-    );
+    const freeRooms = roomsOk.filter(isRoomFree(event.date, db.events));
     if (freeRooms.length > 0) {
       return {
         result: true,
@@ -64,13 +59,13 @@ export const getRecommendation = (date, members, db) => {
       }
     }
   };
-  const roomsOk = db.rooms.filter(room => isRoomSizeOk(members, room));
+  const roomsOk = db.rooms.filter(isRoomSizeOk(members));
 
-  // .sort((a, b) => freeFirst(a, b, date, db))
+  // .sort(freeFirst(date, db))
 
   const freeRooms = roomsOk
-    .filter(room => isRoomFree(room, date.start, date.end, db.events))
-    .sort((a, b) => countTotalSteps(members, a) - countTotalSteps(members, b));
+    .filter(isRoomFree(date, db.events))
+    .sort(sortByTotalSteps(members));
   if (freeRooms.length > 0) {
     return freeRooms.reduce((acc, room) => {
       const { id: roomId } = room;
@@ -114,9 +109,9 @@ export const getRecommendation = (date, members, db) => {
   }
 };
 
-const freeFirst = (roomA, roomB, date, db) => {
-  const aFree = isRoomFree(roomA, date.start, date.end, db.events);
-  const bFree = isRoomFree(roomB, date.start, date.end, db.events);
+const freeFirst = (date, db) => (roomA, roomB) => {
+  const aFree = isRoomFree(date, db.events)(roomA);
+  const bFree = isRoomFree(date, db.events)(roomB);
   if (aFree === bFree) return 0;
   if (aFree && !bFree) return -1;
   if (!aFree && bFree) return 1;
@@ -128,16 +123,17 @@ const freeFirst = (roomA, roomB, date, db) => {
  * @param {Number} room
  * @param {Date} start
  * @param {Date} end
- * @param {} events
+ * @param {Array} eventsList
  */
-export const isRoomFree = (room, start, end, events) => {
+export const isRoomFree = (date, eventsList) => room => {
+  const { start, end } = date;
   const dayStart = moment()
     .hour(8)
     .startOf("hour");
   const dayEnd = moment()
     .hour(23)
     .startOf("hour");
-  const isFree = events
+  const isFree = eventsList
     .filter(event => parseInt(event.room) === parseInt(room.id))
     .every(event => {
       // console.log(start >= dayStart);
@@ -151,13 +147,20 @@ export const isRoomFree = (room, start, end, events) => {
   return isFree;
 };
 
-export const isRoomSizeOk = (persons, room) => {
+export const isRoomSizeOk = persons => room => {
   return persons.length <= room.capacity;
 };
 
-export const countTotalSteps = (members, room) => {
+const sortByTotalSteps = members => (roomA, roomB) => {
+  return (
+    countTotalSteps(members, roomA.floor) -
+    countTotalSteps(members, roomB.floor)
+  );
+};
+
+export const countTotalSteps = (members, roomFloor) => {
   const result = members.reduce((acc, member) => {
-    return acc + Math.abs(member.floor - room.floor);
+    return acc + Math.abs(member.floor - roomFloor);
   }, 0);
   return result;
 };
