@@ -38,21 +38,9 @@ const LayoutEdit = props => {
 };
 
 LayoutEdit.propTypes = {
-  // titleInput: PropTypes.func.isRequired,
-  // dateInput: PropTypes.func.isRequired,
-  // dateStartInput: PropTypes.func.isRequired,
-  // dateEndInput: PropTypes.func.isRequired,
-  // participantsInput: PropTypes.func.isRequired,
-  // participantsList: PropTypes.func.isRequired,
-  // meetingRoom: PropTypes.func.isRequired,
   onCloseClick: PropTypes.func.isRequired,
   onDeleteClick: PropTypes.func.isRequired,
   onSubmitClick: PropTypes.func.isRequired
-  // modal: PropTypes.shape({
-  //   visible: PropTypes.bool,
-  //   onCancelClick: PropTypes.func.isRequired,
-  //   onConfirmClick: PropTypes.func.isRequired
-  // })
 };
 
 export default LayoutEdit;

@@ -6,7 +6,6 @@ import LayoutCommon from "./LayoutCommon";
 
 const LayoutEdit = props => {
   const { onDeleteClick, onCloseClick, onSubmitClick, modal } = props;
-  console.log("Edit <<");
   return (
     <Fragment>
       <form onSubmit={e => e.preventDefault()}>
@@ -60,13 +59,6 @@ const LayoutEdit = props => {
 };
 
 LayoutEdit.propTypes = {
-  // titleInput: PropTypes.func.isRequired,
-  // dateInput: PropTypes.func.isRequired,
-  // dateStartInput: PropTypes.func.isRequired,
-  // dateEndInput: PropTypes.func.isRequired,
-  // participantsInput: PropTypes.func.isRequired,
-  // participantsList: PropTypes.func.isRequired,
-  // meetingRoom: PropTypes.func.isRequired,
   onCloseClick: PropTypes.func.isRequired,
   onDeleteClick: PropTypes.func.isRequired,
   onSubmitClick: PropTypes.func.isRequired,

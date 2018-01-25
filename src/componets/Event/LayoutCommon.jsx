@@ -17,7 +17,6 @@ const LayoutCommon = props => {
     editPageDeleteSection,
     onCloseClick
   } = props;
-  console.log("common<<<< ", props);
   return (
     <div className="form-container__row-1">
       <div className="form-centering-container">
@@ -96,13 +95,6 @@ LayoutCommon.propTypes = {
   participantsList: PropTypes.func.isRequired,
   meetingRoomsList: PropTypes.func.isRequired,
   onCloseClick: PropTypes.func.isRequired
-  // onDeleteClick: PropTypes.func.isRequired,
-  // onSubmitClick: PropTypes.func.isRequired,
-  // modal: PropTypes.shape({
-  //   visible: PropTypes.bool,
-  //   onCancelClick: PropTypes.func.isRequired,
-  //   onConfirmClick: PropTypes.func.isRequired
-  // })
 };
 
 export default LayoutCommon;

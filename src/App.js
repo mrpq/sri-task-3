@@ -27,7 +27,11 @@ class App extends Component {
           <Fragment>
             <Route exact path="/" component={Home} />
             <Switch>
-              <Route exact path="/event/create" component={Event} />
+              <Route
+                exact
+                path="/event/create/:timeStart?/:timeEnd?"
+                component={Event}
+              />
               <Route exact path="/event/edit/:id" component={Event} />
             </Switch>
           </Fragment>

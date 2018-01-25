@@ -38,7 +38,7 @@ let FreeSlot = props => {
       style={styles}
       className="room__meeting room__meeting--free js-room-meeting-free"
       onClick={() => {
-        history.push("/event/create");
+        history.push(`/event/create/${timeStart.unix()}/${timeEnd.unix()}`);
       }}
     >
       <div className="room__meeting-inside-left">

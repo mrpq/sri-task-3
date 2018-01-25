@@ -1457,7 +1457,9 @@ input:focus ~ .clearable-input__clear--visible {
 @media (min-width: 960px) {
   .calendar-slider {
     position: absolute;
-    top: 10px;
+    /* top: 10px; */
+    height: 46px;
+    top: auto;
     z-index: 100;
     width: 245px;
     font-size: 15px;
@@ -1525,7 +1527,7 @@ input:focus ~ .clearable-input__clear--visible {
   }
 }
 
-.calenad-slider__date-container {
+.calendar-slider__date-container {
   font-size: 15px;
   line-height: 1.2;
 }

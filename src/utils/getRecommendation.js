@@ -1,5 +1,5 @@
-// import moment from "moment";
-const moment = require("moment");
+import moment from "moment";
+// const moment = require("moment");
 
 class Recommendation {
   constructor(eventDate, roomId, swap = []) {
@@ -56,8 +56,6 @@ export const getRecommendation = (date, members, db) => {
     }
   };
   const roomsOk = db.rooms.filter(isRoomSizeOk(members));
-
-  // .sort(freeFirst(date, db))
 
   // try find recommendations with rooms, return if found
   const freeRooms = roomsOk

@@ -14,12 +14,9 @@ import Participant from "../common/gui/Participant";
 import DatePickerInput from "../common/gui/DatePickerInput";
 import RecomendedRoom from "../common/gui/RecomendedRoom";
 import TimeInput from "../common/gui/TimeInput";
-// import CloseIcon from "../common/icons/CloseIcon";
 import LayoutEdit from "./LayoutEdit";
 import { round5 } from "../../utils/";
 import LayoutNew from "./LayoutNew";
-
-// import { ModalDelete } from "../common/Modals";
 
 const EVENT_QUERY = gql`
   query EventQuery($id: ID!) {
@@ -120,9 +117,9 @@ const EVENT_DELETE = gql`
 class Event extends Component {
   constructor(props) {
     super(props);
-
     const now = moment();
     now.minute(round5(now.minute()));
+    const { match: { params: { timeStart, timeEnd } } } = this.props;
     const dateStartDefault = now;
     const dateEndDefault = now.clone().add(15, "minute");
     this.state = {
@@ -167,7 +164,6 @@ class Event extends Component {
   hydrateStateWithDataOnEdit() {
     const { match: { path } } = this.props;
     if (!path.includes("edit")) return;
-    console.log(this.props);
     const { event: { event, errors } } = this.props;
     this.setState(prevState => {
       const newState = {
@@ -186,16 +182,7 @@ class Event extends Component {
       return newState;
     });
   }
-  /**
-   * @param {EventDate} date Дата планируемой встречи.
-   * @param {Person[]} members Участники планируемой встречи.
-   * @param {Object} db
-   * @param {Event[]} db.events Список все встреч.
-   * @param {Room[]} db.rooms Список всех переговорок.
-   * @param {Person[]} db.persons Список всех сотрудников.
-   * @returns {Recommendation[]}
-   */
-  // event: form.date, members: form.participantsList, db: {}
+
   getRecommendation = (date, members, db) => {
     console.log(this.props.rooms);
     return this.props.rooms.rooms;

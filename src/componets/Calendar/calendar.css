@@ -1,0 +1,34 @@
+.calendar-slider__date-container {
+  position: relative;
+  z-index: 15;
+  width: 125px;
+  text-align: center;
+}
+.calendar-picker-container {
+  padding-top: 20px;
+  top: 100%;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.calendar-slider__date-container:hover .calendar-picker-container {
+  visibility: visible;
+  opacity: 1;
+}
+.calendar-picker-inside {
+  box-shadow: 0 1px 8px 0 rgba(0, 44, 92, 0.28);
+  border-radius: 4px;
+  background-color: #fff;
+  /* background-color: #e9ecef; */
+}
+@media (min-width: 960px) {
+  .calendar-picker-container {
+    padding-top: 14px;
+    left: auto;
+    transform: translateX(0);
+  }
+}
