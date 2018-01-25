@@ -3,7 +3,14 @@ import React from "react";
 const LogoIcon = props => {
   const { className, width, height, fill } = props;
   return (
-    <svg className={className} width={width} height={height}>
+    <svg
+      className={className}
+      width={width}
+      height={height}
+      // width="175"
+      // height="26"
+      viewBox="0 0 175 26"
+    >
       <title>logo</title>
       <g fill="none" fillRule="evenodd">
         <path
