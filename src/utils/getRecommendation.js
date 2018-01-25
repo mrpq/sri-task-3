@@ -11,7 +11,6 @@ class Recommendation {
 
 export const getRecommendation = (date, members, db) => {
   const getSwapsForEvent = (event, room, roomsList, swaps) => {
-    // console.log(event.title);
     const roomsOk = roomsList
       .filter(isRoomSizeOk(event.members))
       .sort(freeFirst(event.date, db))
@@ -32,7 +31,6 @@ export const getRecommendation = (date, members, db) => {
           event => event.room == filteredRooms[i].id
         );
         const res = { result: true, swaps: [] };
-        // console.log(roomEventsForDate.length);
         for (let j = 0; j <= roomEventsForDate.length - 1; j++) {
           const result = getSwapsForEvent(
             roomEventsForDate[j],
@@ -49,10 +47,8 @@ export const getRecommendation = (date, members, db) => {
               ...result.swaps,
               { event: event.id, room: filteredRooms[i].id }
             ];
-            // console.log("ok! event ", roomEventsForDate[j], " ", res);
           } else {
             return { result: false };
-            // console.log("fail! event ", roomEventsForDate[j], " ", res);
           }
         }
         if (res.result) return res;
@@ -63,6 +59,7 @@ export const getRecommendation = (date, members, db) => {
 
   // .sort(freeFirst(date, db))
 
+  // try find recommendations with rooms, return if found
   const freeRooms = roomsOk
     .filter(isRoomFree(date, db.events))
     .sort(sortByTotalSteps(members));
@@ -73,6 +70,7 @@ export const getRecommendation = (date, members, db) => {
     }, []);
   }
 
+  // try find recommendations with swaps, return if found
   const recommendationsWithSwaps = roomsOk.reduce((acc, room) => {
     // console.log("tik, ", acc);
     const roomEventsForDate = db.events.filter(event => event.room == room.id);
@@ -90,7 +88,7 @@ export const getRecommendation = (date, members, db) => {
       if (swaps.result === true) {
         res.push(...swaps.swaps);
       } else {
-        res = [];
+        res.length = 0;
         break;
       }
     }
@@ -100,13 +98,37 @@ export const getRecommendation = (date, members, db) => {
       return acc;
     }
   }, []);
-  // console.log(recommendationsWithSwaps[0]);
-  // console.log(recommendationsWithSwaps[0]);
   if (recommendationsWithSwaps.length > 0) {
     return recommendationsWithSwaps.sort(
       (a, b) => a.swap.length - b.swap.length
     ); // recommendations with least amounts of swaps first
   }
+
+  // make recommendations with first available rooms
+
+  const firstAvailable = roomsOk
+    .reduce((acc, room) => {
+      const closestAvailableTime = findClosestAvailableTime(
+        date,
+        room,
+        db.events
+      );
+      return [
+        ...acc,
+        new Recommendation(
+          {
+            start: closestAvailableTime,
+            end: moment(closestAvailableTime + (date.end - date.start))
+          },
+          room.id
+        )
+      ];
+    }, [])
+    .sort(
+      (recommendationA, recommendationB) =>
+        recommendationA.date.start - recommendationB.date.start
+    );
+  return firstAvailable;
 };
 
 const freeFirst = (date, db) => (roomA, roomB) => {
@@ -117,6 +139,26 @@ const freeFirst = (date, db) => (roomA, roomB) => {
   if (!aFree && bFree) return 1;
 };
 
+export const findClosestAvailableTime = (date, room, allEvents) => {
+  const roomEventsSortedByTime = allEvents
+    .filter(event => event.room == room.id) // work only with events for exact room
+    .filter(event => event.date.end > date.start) // filter events in past
+    .sort((eventA, eventB) => eventA.date.end - eventB.date.start); //sort events by time
+  let closestAvailableTime = null;
+  const duration = date.end - date.start;
+  for (let i = 0; i <= roomEventsSortedByTime.length - 1; i += 1) {
+    if (closestAvailableTime !== null) break;
+    const currEvent = roomEventsSortedByTime[i];
+    const currEventEnd = currEvent.date.end;
+    const nextEvent = roomEventsSortedByTime[i + 1] || null;
+    const nextEventStart = nextEvent ? nextEvent.date.start : Infinity;
+    const timeGapBetweenEvents = nextEventStart - currEventEnd;
+    if (duration <= timeGapBetweenEvents) {
+      closestAvailableTime = moment(currEventEnd);
+    }
+  }
+  return closestAvailableTime;
+};
 /**
  *
  *
