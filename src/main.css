@@ -482,7 +482,7 @@ body {
   width: 100%;
   position: relative;
   white-space: nowrap;
-  padding-bottom: 14px;
+  padding-bottom: 400px;
 }
 
 @media (min-width: 960px) {
@@ -519,6 +519,7 @@ body {
 .diagram__curr-time-label::after {
   content: "";
   width: 1px;
+  height: 618px;
   background-color: #1681fb;
   position: absolute;
   left: 50%;
@@ -576,7 +577,7 @@ body {
   -webkit-transform: translateX(-50%);
   transform: translateX(-50%);
   width: 1px;
-  height: 100px;
+  height: 600px;
   background-color: rgba(19, 100, 205, 0.1);
 }
 
@@ -633,7 +634,7 @@ body {
 }
 
 .floors__footer {
-  height: 130px;
+  height: 120px;
 }
 
 .floors__footer-left {

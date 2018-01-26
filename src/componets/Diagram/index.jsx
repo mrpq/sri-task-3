@@ -4,6 +4,7 @@ import moment from "moment";
 
 import FloorsList from "./FloorsList";
 import { createGridStylesForTimeRange } from "../../utils";
+import Footer from "./Footer";
 
 const CurrentTime = props => {
   const now = moment(new Date());
@@ -44,6 +45,7 @@ const Diagram = props => {
         <CurrentTime />
         <DiagramHours />
         <FloorsList currentDate={currentDate.valueOf()} />
+        <Footer />
       </div>
     </div>
   );
