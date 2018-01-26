@@ -212,7 +212,6 @@ class Event extends Component {
           participantsList: event.users,
           room: event.room
         }
-        // recommendedRooms: [event.room]
       };
       return newState;
     });
@@ -349,6 +348,7 @@ class Event extends Component {
       return {
         form: {
           ...prevState.form,
+          room: null,
           [name]: {
             value,
             errors: null
@@ -365,6 +365,7 @@ class Event extends Component {
         ...prevState,
         form: {
           ...prevState.form,
+          room: null,
           date: {
             value: moment(value),
             errors: null
@@ -408,11 +409,18 @@ class Event extends Component {
     );
     if (!userAlreadyInList) {
       this.setState(prevState => {
+        console.log("hey");
+        const participantsList = prevState.form.participantsList.concat(user);
+        let room = prevState.form.room;
+        if (room && room.capacity < participantsList.length) {
+          room = null; //uncheck room if we added more than it can take
+        }
         return {
           ...prevState,
           form: {
             ...prevState.form,
-            participantsList: prevState.form.participantsList.concat(user),
+            participantsList,
+            room,
             addedParticipantsIdsList: prevState.form.addedParticipantsIdsList.concat(
               user.id
             ),
