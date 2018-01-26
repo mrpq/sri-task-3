@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { graphql } from "react-apollo";
 import gql from "graphql-tag";
 
-import { Link, Redirect, withRouter } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 
 import EditIcon from "../common/icons/EditIcon";
 import { createGridStylesForTimeRange } from "../../utils";
@@ -10,7 +10,7 @@ import moment from "moment";
 moment.locale("ru");
 
 const EVENTS_QUERY = gql`
-  query {
+  query RoomsItemEvents {
     events {
       id
       title
@@ -31,15 +31,13 @@ const EVENTS_QUERY = gql`
 let FreeSlot = props => {
   const { timeStart, timeEnd, room, history } = props;
   const styles = createGridStylesForTimeRange(timeStart, timeEnd);
-  // styles.display = "block";
   return (
-    // <Link to="/event/create" style={styles}>
     <div
       style={styles}
       className="room__meeting room__meeting--free js-room-meeting-free"
       onClick={() => {
         history.push(
-          `/event/create/${timeStart.valueOf()}/${timeEnd.valueOf()}`
+          `/event/create/${timeStart.valueOf()}/${timeEnd.valueOf()}/${room.id}`
         );
       }}
     >
@@ -47,7 +45,6 @@ let FreeSlot = props => {
         <button className="room__meeting-create-button" />
       </div>
     </div>
-    // </Link>
   );
 };
 FreeSlot = withRouter(FreeSlot);
@@ -56,7 +53,7 @@ const Event = props => {
   const { room, event: { id, title, dateStart, dateEnd, users } } = props;
   const styles = createGridStylesForTimeRange(dateStart, dateEnd);
   const displayUsers = () => {
-    if (users.length == 1) return null;
+    if (users.length === 1) return null;
     let word;
     switch (true) {
       case users.length - 1 === 1:
@@ -111,7 +108,6 @@ const Event = props => {
           />
           <div className="attendees__name">{users[0].login}</div>
           {displayUsers()}
-          {/* <div className="attendees__amount"> и 12 участников</div> */}
         </div>
       </div>
     </div>
@@ -119,6 +115,8 @@ const Event = props => {
 };
 
 class RoomsItem extends Component {
+  componentWillReceiveProps(nextProps) {}
+
   createRoomEventsAndFreeSlots(roomEvents) {
     const { room } = this.props;
     const eventsAndFreeSlots = [];

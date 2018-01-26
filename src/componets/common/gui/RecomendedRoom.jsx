@@ -12,7 +12,7 @@ const RecomendedRoom = props => {
     "meeting-output--selected": selected
   });
   return (
-    <div className={classNames} onClick={onClick}>
+    <div className={classNames} onClick={selected ? () => {} : onClick}>
       <div className="meeting-output__hours">
         <span className="meeting-output__start">{dateStart}</span>
         <span>—</span>

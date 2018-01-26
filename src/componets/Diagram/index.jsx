@@ -49,6 +49,8 @@ const Diagram = props => {
   );
 };
 
-Diagram.propTypes = {};
+Diagram.propTypes = {
+  currentDate: PropTypes.object.isRequired
+};
 
 export default Diagram;

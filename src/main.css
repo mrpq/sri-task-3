@@ -1908,6 +1908,8 @@ input:focus ~ .clearable-input__clear--visible {
   line-height: 1.13333;
   color: #333333;
   margin-top: 8px;
+
+  white-space: normal;
 }
 
 .attendees {

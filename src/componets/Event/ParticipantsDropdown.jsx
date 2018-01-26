@@ -43,7 +43,6 @@ class ParticipantsDropdown extends Component {
       placeholder,
       onChange,
       onClearClick,
-      onDropdownItemClick,
       data: { users }
     } = this.props;
     return (

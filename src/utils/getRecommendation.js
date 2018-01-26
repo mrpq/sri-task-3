@@ -1,5 +1,4 @@
 import moment from "moment";
-// const moment = require("moment");
 
 class Recommendation {
   constructor(eventDate, roomId, swap = []) {
@@ -28,7 +27,8 @@ export const getRecommendation = (date, members, db) => {
       const filteredRooms = roomsOk.filter(r => r.id !== room.id);
       for (let i = 0; i <= filteredRooms.length - 1; i++) {
         const roomEventsForDate = db.events.filter(
-          event => event.room == filteredRooms[i].id
+          event =>
+            parseInt(event.room, 10) === parseInt(filteredRooms[i].id, 10)
         );
         const res = { result: true, swaps: [] };
         for (let j = 0; j <= roomEventsForDate.length - 1; j++) {
@@ -70,13 +70,12 @@ export const getRecommendation = (date, members, db) => {
 
   // try find recommendations with swaps, return if found
   const recommendationsWithSwaps = roomsOk.reduce((acc, room) => {
-    // console.log("tik, ", acc);
-    const roomEventsForDate = db.events.filter(event => event.room == room.id);
-    const filteredRooms = db.rooms.filter(r => r.id !== room.id);
-    // console.log(filteredRooms.length);
+    const roomEventsForDate = db.events.filter(event => event.room === room.id);
+    const filteredRooms = db.rooms.filter(
+      r => parseInt(r.id, 10) !== parseInt(room.id, 10)
+    );
     const res = [];
     for (let i = 0; i <= roomEventsForDate.length - 1; i++) {
-      // console.log(roomEventsForDate[i]);
       const swaps = getSwapsForEvent(
         roomEventsForDate[i],
         room,
@@ -139,7 +138,7 @@ const freeFirst = (date, db) => (roomA, roomB) => {
 
 export const findClosestAvailableTime = (date, room, allEvents) => {
   const roomEventsSortedByTime = allEvents
-    .filter(event => event.room == room.id) // work only with events for exact room
+    .filter(event => parseInt(event.room, 10) === parseInt(room.id, 10)) // work only with events for exact room
     .filter(event => event.date.end > date.start) // filter events in past
     .sort((eventA, eventB) => eventA.date.end - eventB.date.start); //sort events by time
   let closestAvailableTime = null;
@@ -174,7 +173,7 @@ export const isRoomFree = (date, eventsList) => room => {
     .hour(23)
     .startOf("hour");
   const isFree = eventsList
-    .filter(event => parseInt(event.room) === parseInt(room.id))
+    .filter(event => parseInt(event.room, 10) === parseInt(room.id, 10))
     .every(event => {
       // console.log(start >= dayStart);
       const res =

@@ -12,7 +12,6 @@ export const createGridStylesForTimeRange = (timeStart, timeEnd) => {
   const offset = 3;
   let duration = 1;
   const columnStart = Math.floor((timeStart - dayStart) / 60000);
-  let msStyles = `-ms-grid-column: ${columnStart + offset}; `;
   if (timeEnd) {
     timeEnd = moment(timeEnd).startOf("minute");
     duration = Math.floor((timeEnd - timeStart) / 60000);

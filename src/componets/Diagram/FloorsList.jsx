@@ -5,7 +5,7 @@ import gql from "graphql-tag";
 import RoomsList from "./RoomsList";
 
 const ROOMS_QUERY = gql`
-  query {
+  query FloorsRooms {
     rooms {
       id
       title
@@ -30,15 +30,13 @@ const FloorItem = ({ floor, rooms, currentDate }) => {
 
 class FloorsList extends Component {
   shouldComponentUpdate(nextProps, nextState) {
-    console.log(nextProps);
     return true;
   }
   render() {
-    const { rooms: { rooms, loading, error }, currentDate } = this.props;
+    const { rooms: { rooms, loading }, currentDate } = this.props;
     if (loading) {
       return <p>Loading...</p>;
     }
-    console.log(currentDate);
     const floors = rooms.reduce((acc, { floor }) => {
       if (acc.indexOf(floor) === -1) return acc.concat(floor);
       return acc;
@@ -47,7 +45,9 @@ class FloorsList extends Component {
       <div className="diagram__floors floors">
         <ul className="floors__list">
           {floors.map(floor => {
-            const floorRooms = rooms.filter(room => room.floor == floor);
+            const floorRooms = rooms.filter(
+              room => parseInt(room.floor, 10) === parseInt(floor, 10)
+            );
             return (
               <FloorItem
                 key={floor}

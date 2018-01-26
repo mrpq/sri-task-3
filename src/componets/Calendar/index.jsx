@@ -1,10 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
-import moment from "moment";
 
 import DayPicker from "react-day-picker";
 import "react-day-picker/lib/style.css";
-import { formatDate, parseDate } from "react-day-picker/moment";
 
 import ArrowLeftIcon from "../common/icons/ArrowLeftIcon";
 import ArrowRightIcon from "../common/icons/ArrowRightIcon";
@@ -62,7 +60,7 @@ Calendar.propTypes = {
   currentDate: PropTypes.object.isRequired,
   onArrowClick: PropTypes.func.isRequired,
   onDayClick: PropTypes.func.isRequired,
-  selectedDay: PropTypes.date
+  selectedDay: PropTypes.object
 };
 
 export default Calendar;

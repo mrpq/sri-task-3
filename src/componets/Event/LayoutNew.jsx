@@ -1,11 +1,10 @@
 import React, { Fragment } from "react";
 import PropTypes from "prop-types";
 
-import { ModalDelete } from "../common/Modals";
 import LayoutCommon from "./LayoutCommon";
 
 const LayoutEdit = props => {
-  const { onCancelClick, onDeleteClick, onCloseClick, onSubmitClick } = props;
+  const { onCloseClick, onSubmitClick } = props;
   return (
     <Fragment>
       <form onSubmit={e => e.preventDefault()}>
@@ -19,7 +18,7 @@ const LayoutEdit = props => {
               <button
                 type="button"
                 className="btn btn--cancel btn--desktop-only"
-                onClick={onCancelClick}
+                onClick={onCloseClick}
               >
                 Отмена
               </button>
@@ -39,7 +38,6 @@ const LayoutEdit = props => {
 
 LayoutEdit.propTypes = {
   onCloseClick: PropTypes.func.isRequired,
-  onDeleteClick: PropTypes.func.isRequired,
   onSubmitClick: PropTypes.func.isRequired
 };
 

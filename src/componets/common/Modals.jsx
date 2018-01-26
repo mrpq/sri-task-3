@@ -33,21 +33,29 @@ ModalDelete.propTypes = {
   onConfirmClick: PropTypes.func.isRequired
 };
 
-export const ModalCreate = ({ onSubmitClick }) => {
+export const ModalCreate = ({ onSubmitClick, visible, data }) => {
+  const styles = {
+    display: visible ? "block" : "none"
+  };
+  if (!visible) return null;
   return (
-    <div className="modal-container">
+    <div className="modal-container" style={styles}>
       <div className="modal">
         <div className="modial__icon-container" />
         <div className="modal__info">
           <strong className="modal__title">Встеча создана!</strong>
           <div className="modal__details">
             <div className="modal__date-time">
-              <span className="modal__date">14 декабря,</span>
-              <span className="modal__time">15:00—17:00</span>
+              <span className="modal__date">
+                {data.dateStart.format("DD MMMM")}
+              </span>
+              <span className="modal__time">
+                {data.dateStart.format("HH:mm")}—{data.dateEnd.format("HH:mm")}
+              </span>
             </div>
             <div className="modal__room">
-              <span className="modal__room-name">Готем &middot; </span>
-              <span className="modal__floor">4этаж</span>
+              <span className="modal__room-name">{`${data.room.title} ·`}</span>
+              <span className="modal__floor">{` ${data.room.floor} этаж`}</span>
             </div>
           </div>
         </div>
@@ -62,5 +70,7 @@ export const ModalCreate = ({ onSubmitClick }) => {
 };
 
 ModalCreate.propTypes = {
-  onSubmitClick: PropTypes.func.isRequired
+  onSubmitClick: PropTypes.func.isRequired,
+  visible: PropTypes.bool,
+  data: PropTypes.oneOfType([PropTypes.object, PropTypes.instanceOf(null)])
 };

@@ -1,7 +1,8 @@
 import React from "react";
+import PropTypes from "prop-types";
 
 const ArrowLeftIcon = props => {
-  const { className, width, height, fill } = props;
+  const { className, width, height } = props;
   return (
     <svg className={className} width={width} height={height} viewBox="0 0 7 12">
       <title>arrow2</title>
@@ -15,6 +16,12 @@ const ArrowLeftIcon = props => {
       />
     </svg>
   );
+};
+
+ArrowLeftIcon.propType = {
+  className: PropTypes.string,
+  width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  height: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
 };
 
 export default ArrowLeftIcon;

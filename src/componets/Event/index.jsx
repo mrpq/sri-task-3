@@ -12,15 +12,14 @@ import ClearableInput from "../common/gui/ClearableInput";
 import ParticipantsDropdown from "./ParticipantsDropdown";
 import Participant from "../common/gui/Participant";
 import DatePickerInput from "../common/gui/DatePickerInput";
-import RecomendedRoom from "../common/gui/RecomendedRoom";
+import RecommendedRooms from "./RecommendedRooms";
 import TimeInput from "../common/gui/TimeInput";
 import LayoutEdit from "./LayoutEdit";
 import { round5 } from "../../utils/";
-import { getRecommendation } from "../../utils/getRecommendation";
 import LayoutNew from "./LayoutNew";
 
 const EVENTS_QUERY = gql`
-  query {
+  query EventEvents {
     events {
       id
       title
@@ -61,7 +60,7 @@ const EVENT_QUERY = gql`
   }
 `;
 const ROOMS_QUERY = gql`
-  query RoomsQuery {
+  query EventRooms {
     rooms {
       id
       title
@@ -154,9 +153,26 @@ class Event extends Component {
         deletedParticipantsIdsList: [],
         room: null
       },
-      deleteAlertModal: false,
-      recommendedRooms: []
+      deleteAlertModal: false
+      // recommendedRooms: []
     };
+  }
+  componentWillReceiveProps(nextProps) {
+    const { match: { params: { roomId } } } = this.props;
+    if (roomId) {
+      if (nextProps.rooms.loading === false) {
+        const room = nextProps.rooms.rooms.find(
+          room => parseInt(room.id, 10) === parseInt(roomId, 10)
+        );
+        this.setState(prevState => ({
+          ...prevState,
+          form: {
+            ...prevState.form,
+            room
+          }
+        }));
+      }
+    }
   }
 
   componentDidMount() {
@@ -171,26 +187,13 @@ class Event extends Component {
       ) {
         this.hydrateStateWithDataOnEdit();
       }
-    } else {
-      // console.log("boom ", this.props);
-      // if (
-      //   prevProps.rooms.loading === true &&
-      //   this.props.rooms.loading === false
-      // ) {
-      //   console.log(this.props.events);
-      //   if (this.props.events.events) {
-      //     console.log("baaaam");
-      //     console.log("bam ", this.props);
-      //     this.setState({ recommendedRooms: this.getRecommendation() });
-      //   }
-      // }
     }
   }
 
   hydrateStateWithDataOnEdit() {
     const { match: { path } } = this.props;
     if (!path.includes("edit")) return;
-    const { event: { event, errors } } = this.props;
+    const { event: { event } } = this.props;
     this.setState(prevState => {
       const newState = {
         ...prevState,
@@ -202,8 +205,8 @@ class Event extends Component {
           dateEnd: { value: moment(event.dateEnd) },
           participantsList: event.users,
           room: event.room
-        },
-        recommendedRooms: [event.room]
+        }
+        // recommendedRooms: [event.room]
       };
       return newState;
     });
@@ -215,60 +218,13 @@ class Event extends Component {
       match: { params: { timeStart, timeEnd } }
     } = this.props;
     const dateStart = timeStart
-      ? moment(parseInt(timeStart))
+      ? moment(parseInt(timeStart, 10))
       : currentDate.clone().minute(round5(currentDate.minute())); //currentDate.clone().hour(;
     const dateEnd = timeEnd
-      ? moment(parseInt(timeEnd))
+      ? moment(parseInt(timeEnd, 10))
       : dateStart.add(15, "minutes");
     return { dateStart, dateEnd };
   }
-
-  getRecommendation = () => {
-    const date = this.createEventDate();
-    // console.log(date);
-    const members = this.state.form.participantsList;
-    const { events: { events }, rooms: { rooms } } = this.props;
-    // console.log(events);
-    // throw new Error();
-    const preparedEvents = this.prepareRawEventsForGetRecommendation(events);
-    const preparedRooms = this.prepareRawRoomsForGetRecommendation(rooms);
-    const db = { events: preparedEvents, rooms: preparedRooms };
-    const result = getRecommendation(date, members, db);
-    // console.log(result);
-    return this.props.rooms.rooms;
-  };
-
-  prepareRawEventsForGetRecommendation = events => {
-    return events.map(event => {
-      // console.log(event);
-      return {
-        ...event,
-        members: event.users,
-        room: parseInt(event.room.id),
-        date: {
-          start: moment(event.dateStart),
-          end: moment(event.dateEnd)
-        }
-      };
-    });
-  };
-  prepareRawRoomsForGetRecommendation = rooms => {
-    return rooms.map(room => ({ ...room, id: parseInt(room.id) }));
-  };
-
-  createEventDate = () => {
-    const date = this.state.form.date.value;
-    return {
-      start: this.state.form.dateStart.value
-        .year(date.year())
-        .month(date.month())
-        .date(date.date()),
-      end: this.state.form.dateEnd.value
-        .year(date.year())
-        .month(date.month())
-        .date(date.date())
-    };
-  };
 
   toggleDeleteArlertModal = () => {
     this.setState(prevState => ({
@@ -300,7 +256,6 @@ class Event extends Component {
       addUserToEvent,
       removeUserFromEvent,
       changeEventRoom,
-      history,
       match: { params: { id }, path }
     } = this.props;
     const isEditing = path.includes("edit");
@@ -350,9 +305,22 @@ class Event extends Component {
           usersIds: this.state.form.addedParticipantsIdsList,
           roomId: this.state.form.room.id
         }
-      });
+      })
+        .then(res => {
+          const { history } = this.props;
+          history.push("/");
+          return res;
+        })
+        .then(() => {
+          const { setModalCreateData, toggleModalCreate } = this.props;
+          setModalCreateData({
+            dateStart: this.state.form.dateStart.value,
+            dateEnd: this.state.form.dateEnd.value,
+            room: this.state.form.room
+          });
+          toggleModalCreate();
+        });
     }
-    // history.push("/");
   };
 
   handleTextInputChange = e => {
@@ -386,12 +354,28 @@ class Event extends Component {
 
   handleDateInputChange = value => {
     this.setState(prevState => {
+      const newDate = moment(value);
       return {
+        ...prevState,
         form: {
           ...prevState.form,
           date: {
             value: moment(value),
             errors: null
+          },
+          dateStart: {
+            value: prevState.form.dateStart.value
+              .clone()
+              .year(newDate.year())
+              .month(newDate.month())
+              .date(newDate.date())
+          },
+          dateEnd: {
+            value: prevState.form.dateEnd.value
+              .clone()
+              .year(newDate.year())
+              .month(newDate.month())
+              .date(newDate.date())
           }
         }
       };
@@ -491,8 +475,6 @@ class Event extends Component {
       name === "dateStart"
         ? this.state.form.dateStart.value
         : this.state.form.dateEnd.value;
-    // console.log("time Input start ", defaultDate);
-    // console.log("time Input end ", defaultDate);
     return () => {
       return (
         <TimeInput
@@ -556,70 +538,32 @@ class Event extends Component {
     });
   };
 
-  createMeetingRoomsList = () => () => {
-    const handleRoomDeleteClick = () => {
-      this.setState(prevState => {
-        return {
-          ...prevState,
-          form: {
-            ...prevState.form,
-            room: null
-          },
-          recommendedRooms: this.getRecommendation()
-        };
-      }); // callback needed to populate recommended rooms list
-    };
-    const handleRoomClick = id => () => {
-      this.setState(prevState => {
-        const room = this.props.rooms.rooms.filter(room => room.id === id)[0];
-        return {
-          ...prevState,
-          form: {
-            ...prevState.form,
-            room
-          },
-          recommendedRooms: [room]
-        };
-      });
-    };
-    // const { match: { path } } = this.props;
-    const labelText = this.state.form.room
-      ? "Ваша переговорка"
-      : "Рекомендованные переговорки";
-    return (
-      <Fragment>
-        <InputLabel text={labelText} />
-        {this.state.recommendedRooms.map(room => {
-          // const roomProps = {};
-          const selected =
-            this.state.form.room && this.state.form.room.id === room.id;
-          let dateStart = "";
-          let dateEnd = "";
-          if (this.state.form.dateStart.value) {
-            dateStart = this.state.form.dateStart.value.format("HH:mm");
-          }
-          if (this.state.form.dateEnd.value) {
-            dateEnd = this.state.form.dateEnd.value.format("HH:mm");
-          }
-          return (
-            <RecomendedRoom
-              key={room.id}
-              room={room}
-              dateStart={dateStart}
-              dateEnd={dateEnd}
-              selected={selected}
-              onClick={() => {
-                !selected && handleRoomClick(room.id)();
-              }}
-              onDeleteClick={handleRoomDeleteClick}
-            />
-          );
-        })}
-      </Fragment>
-    );
+  handleRoomClick = id => () => {
+    this.setState(prevState => {
+      const room = this.props.rooms.rooms.filter(room => room.id === id)[0];
+      return {
+        ...prevState,
+        form: {
+          ...prevState.form,
+          room: room
+        }
+      };
+    });
+  };
+  handleRoomDeleteClick = () => {
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        form: {
+          ...prevState.form,
+          room: null
+        }
+      };
+    });
   };
 
   createCommonInputsAndHandlers() {
+    const { events: { events = [] }, rooms: { rooms = [] } } = this.props;
     return {
       titleInput: this.createTitleInput(),
       dateInput: this.createDateInput(),
@@ -627,7 +571,20 @@ class Event extends Component {
       dateEndInput: this.createTimeInput("dateEnd"),
       participantsInput: this.createParticipantsInput(),
       participantsList: this.createParticipantsList(),
-      meetingRoomsList: this.createMeetingRoomsList(),
+      meetingRoomsList: () => {
+        return (
+          <RecommendedRooms
+            dateStart={this.state.form.dateStart.value}
+            dateEnd={this.state.form.dateEnd.value}
+            events={events}
+            rooms={rooms}
+            members={this.state.form.participantsList}
+            selectedRoom={this.state.form.room}
+            onRoomClick={this.handleRoomClick}
+            onRoomDeleteClick={this.handleRoomDeleteClick}
+          />
+        );
+      },
       onCloseClick: this.createCloseClickHandler(),
       onDeleteClick: this.createDeleteClickHandler(),
       onSubmitClick: this.createSubmitClickHandler()
@@ -669,14 +626,6 @@ class Event extends Component {
   }
 }
 
-const eventQueryOptions = {
-  options: props => ({
-    variables: { id: props.match.params.id }
-  }),
-  name: "event",
-  skip: props => !props.match.params.id
-};
-
 Event = compose(
   graphql(EVENTS_QUERY, { name: "events" }),
   graphql(ROOMS_QUERY, { name: "rooms" }),
@@ -686,27 +635,44 @@ Event = compose(
     skip: props => !props.match.params.id
   }),
   graphql(EVENT_UPDATE, {
-    options: props => ({ variables: { id: props.match.params.id } }),
+    options: props => ({
+      variables: { id: props.match.params.id },
+      refetchQueries: ["RoomsItemEvents, EventEvents"]
+    }),
     name: "updateEvent",
     skip: props => !props.match.params.id
   }),
   graphql(EVENT_USER_ADD, {
-    // options: props => ({ variables: { id: props.match.params.id } }),
     name: "addUserToEvent",
-    skip: props => !props.match.params.id
+    skip: props => !props.match.params.id,
+    options: {
+      refetchQueries: ["RoomsItemEvents", "EventEvents"]
+    }
   }),
   graphql(EVENT_USER_REMOVE, {
     name: "removeUserFromEvent",
-    skip: props => !props.match.params.id
+    skip: props => !props.match.params.id,
+    options: {
+      refetchQueries: ["RoomsItemEvents", "EventEvents"]
+    }
   }),
   graphql(EVENT_ROOM_CHANGE, {
-    name: "changeEventRoom"
+    name: "changeEventRoom",
+    options: {
+      refetchQueries: ["RoomsItemEvents", "EventEvents"]
+    }
   }),
   graphql(EVENT_CREATE, {
-    name: "createEvent"
+    name: "createEvent",
+    options: {
+      refetchQueries: ["RoomsItemEvents", "EventEvents"]
+    }
   }),
   graphql(EVENT_DELETE, {
     name: "removeEvent"
+    // options: {
+    //   refetchQueries: ["RoomsItemEvents", "EventEvents"]
+    // }
   })
 )(Event);
 

@@ -1,5 +1,5 @@
 import React from "react";
-import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
 import LogoIcon from "../common/icons/LogoIcon";
 
 const Header = props => {
@@ -9,12 +9,12 @@ const Header = props => {
         <LogoIcon className="main-heading__logo-icon" />
       </div>
       <div className="main-heading__create-meeting">
-        <button className="btn">Создать встречу</button>
+        <Link to="/event/create">
+          <button className="btn">Создать встречу</button>
+        </Link>
       </div>
     </header>
   );
 };
-
-Header.propTypes = {};
 
 export default Header;
