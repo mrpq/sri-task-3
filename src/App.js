@@ -5,6 +5,8 @@ import { InMemoryCache } from "apollo-cache-inmemory";
 import { ApolloProvider } from "react-apollo";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
+import moment from "moment";
+
 import Home from "./componets/Home/";
 import Event from "./componets/Event/";
 
@@ -20,19 +22,56 @@ const client1 = new ApolloClient({
 });
 
 class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      currentDate: moment()
+    };
+  }
+  handleCalendarArrowClick = direction => () => {
+    this.setState(prevState => {
+      const d = prevState.currentDate;
+      return {
+        currentDate: d.date(d.date() + direction)
+      };
+    });
+  };
+  handleCalendarDayClick = (day, { selected }) => {
+    this.setState({ currentDate: moment(day) });
+  };
+
   render() {
     return (
       <ApolloProvider client={client1}>
         <Router>
           <Fragment>
-            <Route exact path="/" component={Home} />
+            <Route
+              exact
+              path="/"
+              component={props => (
+                <Home
+                  {...props}
+                  handleCalendarDayClick={this.handleCalendarDayClick}
+                  handleCalendarArrowClick={this.handleCalendarArrowClick}
+                  currentDate={this.state.currentDate}
+                />
+              )}
+            />
             <Switch>
               <Route
                 exact
                 path="/event/create/:timeStart?/:timeEnd?"
-                component={Event}
+                component={props => (
+                  <Event {...props} currentDate={this.state.currentDate} />
+                )}
               />
-              <Route exact path="/event/edit/:id" component={Event} />
+              <Route
+                exact
+                path="/event/edit/:id"
+                component={props => (
+                  <Event {...props} currentDate={this.state.currentDate} />
+                )}
+              />
             </Switch>
           </Fragment>
         </Router>

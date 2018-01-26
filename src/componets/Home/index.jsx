@@ -5,39 +5,24 @@ import Header from "../Header";
 import Diagram from "../Diagram";
 import Calendar from "../Calendar";
 
-class Home extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      currentDate: moment()
-    };
-  }
-  handleCalendarArrowClick = direction => () => {
-    this.setState(prevState => {
-      const d = prevState.currentDate;
-      return {
-        currentDate: d.date(d.date() + direction)
-      };
-    });
-  };
-  handleCalendarDayClick = (day, { selected }) => {
-    this.setState({ currentDate: moment(day) });
-  };
-
-  render() {
-    return (
-      <div className="page__wrapper">
-        <Header />
-        <Calendar
-          currentDate={this.state.currentDate}
-          onArrowClick={this.handleCalendarArrowClick}
-          onDayClick={this.handleCalendarDayClick}
-          selectedDay={new Date(this.state.currentDate)}
-        />
-        <Diagram />
-      </div>
-    );
-  }
-}
+const Home = props => {
+  const {
+    currentDate,
+    handleCalendarDayClick,
+    handleCalendarArrowClick
+  } = props;
+  return (
+    <div className="page__wrapper">
+      <Header />
+      <Calendar
+        currentDate={currentDate}
+        onArrowClick={handleCalendarArrowClick}
+        onDayClick={handleCalendarDayClick}
+        selectedDay={new Date(currentDate)}
+      />
+      <Diagram currentDate={currentDate} />
+    </div>
+  );
+};
 
 export default Home;

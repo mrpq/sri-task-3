@@ -38,7 +38,9 @@ let FreeSlot = props => {
       style={styles}
       className="room__meeting room__meeting--free js-room-meeting-free"
       onClick={() => {
-        history.push(`/event/create/${timeStart.unix()}/${timeEnd.unix()}`);
+        history.push(
+          `/event/create/${timeStart.valueOf()}/${timeEnd.valueOf()}`
+        );
       }}
     >
       <div className="room__meeting-inside-left">
@@ -81,7 +83,11 @@ const Event = props => {
       <div className="meeting-tooltip js-meeting-tooltip">
         <Link to={`/event/edit/${id}`}>
           <div className="meeting-tooltip__edit">
-            <EditIcon className="meeting-tooltip__edit-icon" />
+            <EditIcon
+              width="12"
+              height="12"
+              className="meeting-tooltip__edit-icon"
+            />
           </div>
         </Link>
         <h3 className="meeting-tooltip__heading">{title}</h3>
@@ -113,11 +119,8 @@ const Event = props => {
 };
 
 class RoomsItem extends Component {
-  createRoomEventsAndFreeSlots() {
-    const { room, events: { events } } = this.props;
-    const roomEvents = events
-      .filter(event => event.room.id === room.id)
-      .sort((a, b) => moment(a.dateEnd) - moment(b.dateStart));
+  createRoomEventsAndFreeSlots(roomEvents) {
+    const { room } = this.props;
     const eventsAndFreeSlots = [];
     if (roomEvents.length === 0) {
       eventsAndFreeSlots.push({
@@ -192,9 +195,17 @@ class RoomsItem extends Component {
   render() {
     // add disabled room meta and tooltip modifier
 
-    const { room, events: { loading } } = this.props;
+    const { room, events: { events, loading }, currentDate } = this.props;
     if (loading) return <p>loading...</p>;
-    const eventsAndFreeSlots = this.createRoomEventsAndFreeSlots();
+    const roomEvents = events
+      .filter(event => {
+        return moment(event.dateStart).isSame(moment(currentDate), "day");
+      })
+      .filter(event => {
+        return event.room.id === room.id;
+      })
+      .sort((a, b) => moment(a.dateEnd) - moment(b.dateStart));
+    const eventsAndFreeSlots = this.createRoomEventsAndFreeSlots(roomEvents);
     return (
       <li className="floor__room room diagram-grid">
         <div className="room__meta">

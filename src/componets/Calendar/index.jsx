@@ -61,8 +61,8 @@ const Calendar = props => {
 Calendar.propTypes = {
   currentDate: PropTypes.object.isRequired,
   onArrowClick: PropTypes.func.isRequired,
-  onDayClick: PropTypes.func.isRequired
-  // selectedDay: PropTypes.date
+  onDayClick: PropTypes.func.isRequired,
+  selectedDay: PropTypes.date
 };
 
 export default Calendar;

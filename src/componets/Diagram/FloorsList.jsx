@@ -15,7 +15,7 @@ const ROOMS_QUERY = gql`
   }
 `;
 
-const FloorItem = ({ floor, rooms }) => {
+const FloorItem = ({ floor, rooms, currentDate }) => {
   return (
     <li className="floors__item floor">
       <div className="floor__heading-container diagram-grid">
@@ -23,17 +23,22 @@ const FloorItem = ({ floor, rooms }) => {
           <div className="floor__label">{`${floor} этаж`}</div>
         </div>
       </div>
-      <RoomsList rooms={rooms} />
+      <RoomsList rooms={rooms} currentDate={currentDate} />
     </li>
   );
 };
 
 class FloorsList extends Component {
+  shouldComponentUpdate(nextProps, nextState) {
+    console.log(nextProps);
+    return true;
+  }
   render() {
-    const { rooms: { rooms, loading, error } } = this.props;
+    const { rooms: { rooms, loading, error }, currentDate } = this.props;
     if (loading) {
       return <p>Loading...</p>;
     }
+    console.log(currentDate);
     const floors = rooms.reduce((acc, { floor }) => {
       if (acc.indexOf(floor) === -1) return acc.concat(floor);
       return acc;
@@ -43,7 +48,14 @@ class FloorsList extends Component {
         <ul className="floors__list">
           {floors.map(floor => {
             const floorRooms = rooms.filter(room => room.floor == floor);
-            return <FloorItem key={floor} floor={floor} rooms={floorRooms} />;
+            return (
+              <FloorItem
+                key={floor}
+                floor={floor}
+                rooms={floorRooms}
+                currentDate={currentDate}
+              />
+            );
           })}
         </ul>
       </div>

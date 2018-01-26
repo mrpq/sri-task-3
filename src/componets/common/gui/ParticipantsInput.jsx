@@ -124,7 +124,7 @@ class ParticipantsInput extends Component {
           className="clearable-input__clear clearable-input__clear--visible"
           onClick={onClearClick}
         >
-          {value && value.length > 0 ? (
+          {value && value.length >= 0 ? (
             <CloseIcon className="clearable-input__clear-icon" />
           ) : null}
         </div>

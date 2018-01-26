@@ -117,17 +117,14 @@ const EVENT_DELETE = gql`
 class Event extends Component {
   constructor(props) {
     super(props);
-    const now = moment();
-    now.minute(round5(now.minute()));
-    const { match: { params: { timeStart, timeEnd } } } = this.props;
-    const dateStartDefault = now;
-    const dateEndDefault = now.clone().add(15, "minute");
+    const { currentDate } = this.props;
+    const { dateStart, dateEnd } = this.createDefaultDates();
     this.state = {
       form: {
         title: { value: "", errors: null },
-        date: { value: "", errors: null },
-        dateStart: { value: dateStartDefault, errors: null },
-        dateEnd: { value: dateEndDefault, errors: null },
+        date: { value: currentDate, errors: null },
+        dateStart: { value: dateStart, errors: null },
+        dateEnd: { value: dateEnd, errors: null },
         participantsInput: { value: "", errors: null },
         participantsList: [],
         addedParticipantsIdsList: [],
@@ -171,7 +168,7 @@ class Event extends Component {
         form: {
           ...prevState.form,
           title: { value: event.title },
-          date: { value: formatDate(moment(event.dateStart), "LL", "ru") },
+          date: { value: moment(event.dateStart) },
           dateStart: { value: moment(event.dateStart) },
           dateEnd: { value: moment(event.dateEnd) },
           participantsList: event.users,
@@ -181,6 +178,20 @@ class Event extends Component {
       };
       return newState;
     });
+  }
+
+  createDefaultDates() {
+    const {
+      currentDate,
+      match: { params: { timeStart, timeEnd } }
+    } = this.props;
+    const dateStart = timeStart
+      ? moment(parseInt(timeStart))
+      : currentDate.clone().minute(round5(currentDate.minute())); //currentDate.clone().hour(;
+    const dateEnd = timeEnd
+      ? moment(parseInt(timeEnd))
+      : dateStart.add(15, "minutes");
+    return { dateStart, dateEnd };
   }
 
   getRecommendation = (date, members, db) => {
@@ -222,13 +233,19 @@ class Event extends Component {
       match: { params: { id }, path }
     } = this.props;
     const isEditing = path.includes("edit");
+    const dateStart = this.state.form.dateStart.value
+      .date(this.state.form.date.value.date())
+      .toISOString();
+    const dateEnd = this.state.form.dateEnd.value
+      .date(this.state.form.date.value.date())
+      .toISOString();
     if (isEditing) {
       updateEvent({
         variables: {
           id,
           title: this.state.form.title.value,
-          dateStart: this.state.form.dateStart.value.toISOString(),
-          dateEnd: this.state.form.dateEnd.value.toISOString()
+          dateStart: dateStart,
+          dateEnd: dateEnd
         }
       });
       this.state.form.addedParticipantsIdsList.forEach(userId => {
@@ -257,8 +274,8 @@ class Event extends Component {
       createEvent({
         variables: {
           title: this.state.form.title.value,
-          dateStart: this.state.form.dateStart.value.toISOString(),
-          dateEnd: this.state.form.dateEnd.value.toISOString(),
+          dateStart: dateStart,
+          dateEnd: dateEnd,
           usersIds: this.state.form.addedParticipantsIdsList,
           roomId: this.state.form.room.id
         }
@@ -302,7 +319,7 @@ class Event extends Component {
         form: {
           ...prevState.form,
           date: {
-            value: formatDate(moment(value), "LL", "ru"),
+            value: moment(value),
             errors: null
           }
         }
@@ -380,9 +397,10 @@ class Event extends Component {
           <DatePickerInput
             id={id}
             name={name}
-            value={this.state.form[name].value}
+            value={formatDate(moment(this.state.form.date.value), "LL", "ru")}
             onChange={this.handleDateInputChange}
             dayPickerProps={{
+              selectedDays: new Date(this.state.form.date.value),
               locale: "ru",
               localeUtils: MomentLocaleUtils,
               disabledDays: [
@@ -398,12 +416,19 @@ class Event extends Component {
   };
 
   createTimeInput = (id, name = id) => {
+    const defaultDate =
+      name === "dateStart"
+        ? this.state.form.dateStart.value
+        : this.state.form.dateEnd.value;
+    // console.log("time Input start ", defaultDate);
+    // console.log("time Input end ", defaultDate);
     return () => {
       return (
         <TimeInput
           id={id}
           name={name}
-          value={this.state.form[name].value}
+          defaultValue={defaultDate}
+          value={defaultDate}
           onChange={this.handleTimeInputChange(name)}
         />
       );
