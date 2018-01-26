@@ -200,7 +200,8 @@ const sortByTotalSteps = members => (roomA, roomB) => {
 
 export const countTotalSteps = (members, roomFloor) => {
   const result = members.reduce((acc, member) => {
-    return acc + Math.abs(member.floor - roomFloor);
+    return acc + Math.abs(member.homeFloor - roomFloor);
+    // return acc + Math.abs(member.floor - roomFloor);
   }, 0);
   return result;
 };

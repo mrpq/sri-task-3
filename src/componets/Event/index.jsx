@@ -16,8 +16,30 @@ import RecomendedRoom from "../common/gui/RecomendedRoom";
 import TimeInput from "../common/gui/TimeInput";
 import LayoutEdit from "./LayoutEdit";
 import { round5 } from "../../utils/";
+import { getRecommendation } from "../../utils/getRecommendation";
 import LayoutNew from "./LayoutNew";
 
+const EVENTS_QUERY = gql`
+  query {
+    events {
+      id
+      title
+      dateStart
+      dateEnd
+      users {
+        id
+        login
+        avatarUrl
+      }
+      room {
+        id
+        title
+        floor
+        capacity
+      }
+    }
+  }
+`;
 const EVENT_QUERY = gql`
   query EventQuery($id: ID!) {
     event(id: $id) {
@@ -28,6 +50,7 @@ const EVENT_QUERY = gql`
         id
         login
         avatarUrl
+        homeFloor
       }
       room {
         id
@@ -149,12 +172,18 @@ class Event extends Component {
         this.hydrateStateWithDataOnEdit();
       }
     } else {
-      if (
-        prevProps.rooms.loading === true &&
-        this.props.rooms.loading === false
-      ) {
-        this.setState({ recommendedRooms: this.getRecommendation() });
-      }
+      // console.log("boom ", this.props);
+      // if (
+      //   prevProps.rooms.loading === true &&
+      //   this.props.rooms.loading === false
+      // ) {
+      //   console.log(this.props.events);
+      //   if (this.props.events.events) {
+      //     console.log("baaaam");
+      //     console.log("bam ", this.props);
+      //     this.setState({ recommendedRooms: this.getRecommendation() });
+      //   }
+      // }
     }
   }
 
@@ -194,9 +223,51 @@ class Event extends Component {
     return { dateStart, dateEnd };
   }
 
-  getRecommendation = (date, members, db) => {
-    console.log(this.props.rooms);
+  getRecommendation = () => {
+    const date = this.createEventDate();
+    // console.log(date);
+    const members = this.state.form.participantsList;
+    const { events: { events }, rooms: { rooms } } = this.props;
+    // console.log(events);
+    // throw new Error();
+    const preparedEvents = this.prepareRawEventsForGetRecommendation(events);
+    const preparedRooms = this.prepareRawRoomsForGetRecommendation(rooms);
+    const db = { events: preparedEvents, rooms: preparedRooms };
+    const result = getRecommendation(date, members, db);
+    // console.log(result);
     return this.props.rooms.rooms;
+  };
+
+  prepareRawEventsForGetRecommendation = events => {
+    return events.map(event => {
+      // console.log(event);
+      return {
+        ...event,
+        members: event.users,
+        room: parseInt(event.room.id),
+        date: {
+          start: moment(event.dateStart),
+          end: moment(event.dateEnd)
+        }
+      };
+    });
+  };
+  prepareRawRoomsForGetRecommendation = rooms => {
+    return rooms.map(room => ({ ...room, id: parseInt(room.id) }));
+  };
+
+  createEventDate = () => {
+    const date = this.state.form.date.value;
+    return {
+      start: this.state.form.dateStart.value
+        .year(date.year())
+        .month(date.month())
+        .date(date.date()),
+      end: this.state.form.dateEnd.value
+        .year(date.year())
+        .month(date.month())
+        .date(date.date())
+    };
   };
 
   toggleDeleteArlertModal = () => {
@@ -607,6 +678,7 @@ const eventQueryOptions = {
 };
 
 Event = compose(
+  graphql(EVENTS_QUERY, { name: "events" }),
   graphql(ROOMS_QUERY, { name: "rooms" }),
   graphql(EVENT_QUERY, {
     options: props => ({ variables: { id: props.match.params.id } }),
