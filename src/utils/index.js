@@ -6,7 +6,7 @@ export const round5 = x => {
 
 export const createGridStylesForTimeRange = (timeStart, timeEnd) => {
   timeStart = moment(timeStart).startOf("minute");
-  const dayStart = moment()
+  const dayStart = moment(timeStart)
     .hours(8)
     .startOf("hour");
   const offset = 3;

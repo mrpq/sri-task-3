@@ -90,7 +90,7 @@ class App extends Component {
               />
               <Route
                 exact
-                path="/event/edit/:id"
+                path="/event/edit/:eventId"
                 component={props => (
                   <Event
                     {...props}

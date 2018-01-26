@@ -139,8 +139,14 @@ const EVENT_DELETE = gql`
 class Event extends Component {
   constructor(props) {
     super(props);
-    const { currentDate } = this.props;
+    const { currentDate, event, match: { params: { eventId } } } = this.props;
     const { dateStart, dateEnd } = this.createDefaultDates();
+    let room = null;
+    let participantsList = [];
+    if (eventId && !event.loading) {
+      room = event.event.room;
+      participantsList = event.event.users;
+    }
     this.state = {
       form: {
         title: { value: "", errors: null },
@@ -148,10 +154,10 @@ class Event extends Component {
         dateStart: { value: dateStart, errors: null },
         dateEnd: { value: dateEnd, errors: null },
         participantsInput: { value: "", errors: null },
-        participantsList: [],
+        participantsList: participantsList,
         addedParticipantsIdsList: [],
         deletedParticipantsIdsList: [],
-        room: null
+        room: room
       },
       deleteAlertModal: false
       // recommendedRooms: []
@@ -242,8 +248,8 @@ class Event extends Component {
   };
   createDeleteConfirmClickHandler = () => () => {
     // send delete request
-    const { removeEvent, match: { params: { id } } } = this.props;
-    removeEvent({ variables: { id } }).then(res => {
+    const { removeEvent, match: { params: { eventId } } } = this.props;
+    removeEvent({ variables: { eventId } }).then(res => {
       const { history } = this.props;
       history.push("/");
     });
@@ -256,7 +262,7 @@ class Event extends Component {
       addUserToEvent,
       removeUserFromEvent,
       changeEventRoom,
-      match: { params: { id }, path }
+      match: { params: { eventId }, path }
     } = this.props;
     const isEditing = path.includes("edit");
     const dateStart = this.state.form.dateStart.value
@@ -268,7 +274,7 @@ class Event extends Component {
     if (isEditing) {
       updateEvent({
         variables: {
-          id,
+          eventId,
           title: this.state.form.title.value,
           dateStart: dateStart,
           dateEnd: dateEnd
@@ -277,7 +283,7 @@ class Event extends Component {
       this.state.form.addedParticipantsIdsList.forEach(userId => {
         addUserToEvent({
           variables: {
-            id,
+            eventId,
             userId: userId
           }
         });
@@ -285,14 +291,14 @@ class Event extends Component {
       this.state.form.deletedParticipantsIdsList.forEach(userId => {
         removeUserFromEvent({
           variables: {
-            id,
+            eventId,
             userId: userId
           }
         });
       });
       changeEventRoom({
         variables: {
-          id,
+          eventId,
           roomId: this.state.form.room.id
         }
       });
@@ -612,9 +618,9 @@ class Event extends Component {
     );
   }
   render() {
-    const { match: { params: { id }, path } } = this.props;
+    const { match: { params: { eventId }, path } } = this.props;
     const isEditing = path.includes("edit");
-    if (isEditing && id) {
+    if (isEditing && eventId) {
       const { event: { loading } } = this.props;
       if (loading) {
         return <p>Loading</p>;
@@ -630,28 +636,28 @@ Event = compose(
   graphql(EVENTS_QUERY, { name: "events" }),
   graphql(ROOMS_QUERY, { name: "rooms" }),
   graphql(EVENT_QUERY, {
-    options: props => ({ variables: { id: props.match.params.id } }),
+    options: props => ({ variables: { id: props.match.params.eventId } }),
     name: "event",
-    skip: props => !props.match.params.id
+    skip: props => !props.match.params.eventId
   }),
   graphql(EVENT_UPDATE, {
     options: props => ({
-      variables: { id: props.match.params.id },
+      variables: { id: props.match.params.eventId },
       refetchQueries: ["RoomsItemEvents, EventEvents"]
     }),
     name: "updateEvent",
-    skip: props => !props.match.params.id
+    skip: props => !props.match.params.eventId
   }),
   graphql(EVENT_USER_ADD, {
     name: "addUserToEvent",
-    skip: props => !props.match.params.id,
+    skip: props => !props.match.params.eventId,
     options: {
       refetchQueries: ["RoomsItemEvents", "EventEvents"]
     }
   }),
   graphql(EVENT_USER_REMOVE, {
     name: "removeUserFromEvent",
-    skip: props => !props.match.params.id,
+    skip: props => !props.match.params.eventId,
     options: {
       refetchQueries: ["RoomsItemEvents", "EventEvents"]
     }

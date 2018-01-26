@@ -166,10 +166,10 @@ export const findClosestAvailableTime = (date, room, allEvents) => {
  */
 export const isRoomFree = (date, eventsList) => room => {
   const { start, end } = date;
-  const dayStart = moment()
+  const dayStart = moment(start)
     .hour(8)
     .startOf("hour");
-  const dayEnd = moment()
+  const dayEnd = moment(start)
     .hour(23)
     .startOf("hour");
   const isFree = eventsList
