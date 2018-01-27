@@ -21,17 +21,23 @@ class RecommendedRooms extends Component {
     return result;
   };
 
-  renderSelectedRoom(room) {
-    const { dateStart, dateEnd, onRoomClick, onRoomDeleteClick } = this.props;
+  renderSelectedRoom() {
+    const {
+      dateStart,
+      selectedRoom,
+      dateEnd,
+      onRoomClick,
+      onRoomDeleteClick
+    } = this.props;
     return (
       <Fragment>
         <InputLabel text="Ваша переговорка" />
         <RecomendedRoom
-          room={room}
+          room={selectedRoom.value}
           dateStart={dateStart.format("HH:mm")}
           dateEnd={dateEnd.format("HH:mm")}
           selected={true}
-          onClick={onRoomClick(room.id)}
+          onClick={onRoomClick(selectedRoom.value)}
           onDeleteClick={onRoomDeleteClick}
         />
       </Fragment>
@@ -75,8 +81,8 @@ class RecommendedRooms extends Component {
 
   render() {
     const { selectedRoom } = this.props;
-    if (selectedRoom) {
-      return this.renderSelectedRoom(selectedRoom);
+    if (selectedRoom.value) {
+      return this.renderSelectedRoom();
     } else {
       return this.renderRecommendedRooms();
     }

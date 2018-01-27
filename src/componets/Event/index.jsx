@@ -61,6 +61,7 @@ const EVENT_QUERY = gql`
         id
         title
         floor
+        capacity
       }
     }
   }
@@ -171,7 +172,7 @@ class Event extends Component {
     }
     this.state = {
       form: {
-        title: { value: title, errors: false },
+        title: { value: title, errors: null },
         date: { value: date, errors: null },
         dateStart: { value: dateStart, errors: null },
         dateEnd: { value: dateEnd, errors: null },
@@ -179,7 +180,7 @@ class Event extends Component {
         participantsList: participantsList,
         addedParticipantsIdsList: [],
         deletedParticipantsIdsList: [],
-        room: room
+        room: { value: room, errors: null }
       },
       deleteAlertModal: false
     };
@@ -248,7 +249,7 @@ class Event extends Component {
           dateStart: { value: moment(event.dateStart) },
           dateEnd: { value: moment(event.dateEnd) },
           participantsList: event.users,
-          room: event.room
+          room: { value: event.room }
         }
       };
       return newState;
@@ -313,9 +314,7 @@ class Event extends Component {
     const dateEnd = this.state.form.dateEnd.value
       .date(this.state.form.date.value.date())
       .toISOString();
-    console.log("udate now", eventId);
-    console.log(this.state.form.room);
-    const swaps = this.state.form.room.swaps || [];
+    const swaps = this.state.form.room.value.swap || [];
     Promise.all(
       swaps.map(swap => {
         // perform swaps first
@@ -355,7 +354,7 @@ class Event extends Component {
         changeEventRoom({
           variables: {
             id: eventId,
-            roomId: this.state.form.room.id
+            roomId: this.state.form.room.value.id
           }
         });
       } else {
@@ -365,7 +364,7 @@ class Event extends Component {
             dateStart: dateStart,
             dateEnd: dateEnd,
             usersIds: this.state.form.addedParticipantsIdsList,
-            roomId: this.state.form.room.id
+            roomId: this.state.form.room.value.id
           }
         })
           .then(res => {
@@ -378,7 +377,7 @@ class Event extends Component {
             setModalCreateData({
               dateStart: this.state.form.dateStart.value,
               dateEnd: this.state.form.dateEnd.value,
-              room: this.state.form.room
+              room: this.state.form.room.value
             });
             toggleModalCreate();
           });
@@ -403,7 +402,7 @@ class Event extends Component {
 
   checkSameRoomRecommendationExist = (value, name) => {
     value = moment(value);
-    if (!this.state.form.room) return false;
+    if (!this.state.form.room.value) return false;
     let {
       match: { path, params: { eventId } },
       events: { loading: eventsLoading, events },
@@ -444,21 +443,20 @@ class Event extends Component {
       this.state.form.participantsList,
       db
     );
-    // console.log(recommendations);
     const sameRoomRecommendation = recommendations
       .filter(rec => !rec.asap)
       .find(rec => {
         const result =
-          parseInt(this.state.form.room.id, 10) === parseInt(rec.room, 10);
+          parseInt(this.state.form.room.value.id, 10) ===
+          parseInt(rec.room, 10);
         return result;
       });
-    console.log(sameRoomRecommendation);
     if (sameRoomRecommendation) return sameRoomRecommendation;
   };
 
   handleTimeInputChange = name => value => {
     const recommendation = this.checkSameRoomRecommendationExist(value, name);
-    let room = this.state.form.room;
+    let room = this.state.form.room.value;
     if (recommendation) {
       room = {
         ...room,
@@ -473,7 +471,7 @@ class Event extends Component {
       return {
         form: {
           ...prevState.form,
-          room,
+          room: { value: room },
           [name]: {
             value,
             errors: null
@@ -485,7 +483,7 @@ class Event extends Component {
 
   handleDateInputChange = value => {
     const recommendation = this.checkSameRoomRecommendationExist(value);
-    let room = this.state.form.room;
+    let room = this.state.form.room.value;
     if (recommendation) {
       room = {
         ...room,
@@ -504,7 +502,7 @@ class Event extends Component {
         ...prevState,
         form: {
           ...prevState.form,
-          room: room,
+          room: { value: room },
           date: {
             value: moment(value),
             errors: null
@@ -553,7 +551,7 @@ class Event extends Component {
     if (!userAlreadyInList) {
       this.setState(prevState => {
         const participantsList = prevState.form.participantsList.concat(user);
-        let room = prevState.form.room;
+        let room = prevState.form.room.value;
         if (room && room.capacity < participantsList.length) {
           room = null; //uncheck room if we added more than it can take
         }
@@ -562,7 +560,7 @@ class Event extends Component {
           form: {
             ...prevState.form,
             participantsList,
-            room,
+            room: { value: room },
             addedParticipantsIdsList: prevState.form.addedParticipantsIdsList.concat(
               user.id
             ),
@@ -703,7 +701,7 @@ class Event extends Component {
           date: { value: room.dateStart },
           dateStart: { value: room.dateStart },
           dateEnd: { value: room.dateEnd },
-          room: room
+          room: { value: room }
         }
       };
     });
@@ -714,7 +712,7 @@ class Event extends Component {
         ...prevState,
         form: {
           ...prevState.form,
-          room: null
+          room: { value: null }
         }
       };
     });
@@ -763,7 +761,7 @@ class Event extends Component {
     return (
       <LayoutNew
         {...commonInputsAndHandlers}
-        roomChecked={this.state.form.room}
+        roomChecked={this.state.form.room.value}
         title="Новая встреча"
       />
     );
