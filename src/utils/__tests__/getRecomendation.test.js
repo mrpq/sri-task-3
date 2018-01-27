@@ -253,7 +253,7 @@ test("Test recommendations #1", () => {
   const result = getRecommendation(date, persons, db);
   expect(result[0].swap.length).toBe(3);
 });
-test("Test recommendations #1", () => {
+test("Test recommendations #2", () => {
   const persons = [
     makePerson("person-1", 1),
     makePerson("person-2", 1),
@@ -287,6 +287,42 @@ test("Test recommendations #1", () => {
   const result = getRecommendation(date, persons, db);
   expect(result[0].swap.length).toBe(1);
   expect(result[1].swap.length).toBe(3);
+});
+test("Test recommendations #3", () => {
+  const persons = [
+    makePerson("person-1", 1),
+    makePerson("person-2", 1),
+    makePerson("person-3", 1),
+    makePerson("person-4", 1),
+    makePerson("person-5", 1),
+    makePerson("person-6", 1),
+    makePerson("person-7", 1)
+  ];
+
+  const rooms = [
+    makeRoom(0, "0-Rikov", 7, 1),
+    makeRoom(1, "1-Tamozh", 5, 1),
+    makeRoom(2, "2-Micro", 3, 1),
+    makeRoom(3, "3-Gazor", 2, 1)
+  ];
+
+  const date = makeEventDate([8, 0], [14, 0]);
+  const db = {
+    events: [
+      makeEvent(0, "e-0", Array(5), makeEventDate([8, 0], [12, 0]), 0),
+      makeEvent(1, "e-1", Array(2), makeEventDate([12, 0], [14, 0]), 0),
+      makeEvent(2, "e-2", Array(3), makeEventDate([8, 0], [11, 0]), 1),
+      makeEvent(3, "e-3", Array(2), makeEventDate([11, 0], [13, 0]), 2),
+      makeEvent(4, "e-long-1", Array(6), makeEventDate([14, 0], [23, 0]), 0),
+      makeEvent(5, "e-long-2", Array(4), makeEventDate([14, 0], [23, 0]), 1),
+      makeEvent(6, "e-long-3", Array(3), makeEventDate([14, 0], [23, 0]), 2),
+      makeEvent(7, "e-long-4", Array(2), makeEventDate([14, 0], [23, 0]), 3)
+    ],
+    rooms: rooms,
+    persons: persons
+  };
+  const result = getRecommendation(date, persons, db);
+  expect(result[0].swap.length).toBe(3);
 });
 
 test("findClosestAvailableTime #1", () => {
@@ -414,5 +450,35 @@ test("Test recommendations - first available #3", () => {
   const result = getRecommendation(date, persons, db);
   expect(result[0].date.start.format("HH:mm")).toBe("12:00");
   expect(result[0].date.end.format("HH:mm")).toBe("13:00");
+  expect(result.length).toBe(1);
+});
+
+test("Test recommendations - first available #4 - if closest after 23 then show next day", () => {
+  const persons = [
+    makePerson("person-1", 1),
+    makePerson("person-2", 1),
+    makePerson("person-3", 1),
+    makePerson("person-4", 1)
+  ];
+
+  const rooms = [
+    makeRoom(0, "room-0", 6, 1),
+    makeRoom(1, "room-1", 5, 1),
+    makeRoom(2, "room-2", 6, 1),
+    makeRoom(3, "room-3", 4, 1),
+    makeRoom(4, "room-4", 4, 1)
+    // makeRoom(5, "room-6", 7, 1)
+  ];
+
+  const date = makeEventDate([10, 0], [11, 0]);
+  const db = {
+    events: [makeEvent(0, "e-0", Array(4), makeEventDate([8, 0], [23, 0]), 0)],
+    rooms: [rooms[0]],
+    persons: persons
+  };
+  const result = getRecommendation(date, persons, db);
+  expect(result[0].date.start.date()).toBe(date.start.date() + 1);
+  expect(result[0].date.start.format("HH:mm")).toBe("08:00");
+  expect(result[0].date.end.format("HH:mm")).toBe("09:00");
   expect(result.length).toBe(1);
 });

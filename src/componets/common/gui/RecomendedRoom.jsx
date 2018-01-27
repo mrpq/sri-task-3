@@ -6,7 +6,15 @@ import "./RecomendedRoom.css";
 import CloseIcon from "../icons/CloseIcon";
 
 const RecomendedRoom = props => {
-  const { dateStart, dateEnd, room, selected, onClick, onDeleteClick } = props;
+  const {
+    dateStart,
+    dateEnd,
+    daysDifference,
+    room,
+    selected,
+    onClick,
+    onDeleteClick
+  } = props;
   const classNames = cn({
     "meeting-output": true,
     "meeting-output--selected": selected
@@ -17,6 +25,9 @@ const RecomendedRoom = props => {
         <span className="meeting-output__start">{dateStart}</span>
         <span>—</span>
         <span className="meeting-output__end">{dateEnd}</span>
+        {daysDifference > 0 ? (
+          <span style={{ fontSize: "10px" }}>{`+${daysDifference}д.`}</span>
+        ) : null}
       </div>
       <div className="meeting-output__room">&nbsp;&nbsp;{room.title}</div>
       <div className="meeting-output__floor">

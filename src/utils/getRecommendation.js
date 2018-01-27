@@ -1,10 +1,11 @@
 import moment from "moment";
 
 class Recommendation {
-  constructor(eventDate, roomId, swap = []) {
+  constructor(eventDate, roomId, swap = [], asap = false) {
     this.date = eventDate;
     this.room = `${roomId}`;
     this.swap = swap;
+    this.asap = asap;
   }
 }
 
@@ -27,8 +28,12 @@ export const getRecommendation = (date, members, db) => {
       const filteredRooms = roomsOk.filter(r => r.id !== room.id);
       for (let i = 0; i <= filteredRooms.length - 1; i++) {
         const roomEventsForDate = db.events.filter(
-          event =>
-            parseInt(event.room, 10) === parseInt(filteredRooms[i].id, 10)
+          e =>
+            parseInt(e.room, 10) === parseInt(filteredRooms[i].id, 10) &&
+            ((e.date.end > event.date.start && e.date.start < event.date.end) ||
+              (e.date.start < event.date.end && e.date.end > event.date.start))
+          //   e.date.end > event.date.start) ||
+          // e.date.start < event.date.end
         );
         const res = { result: true, swaps: [] };
         for (let j = 0; j <= roomEventsForDate.length - 1; j++) {
@@ -70,7 +75,13 @@ export const getRecommendation = (date, members, db) => {
 
   // try find recommendations with swaps, return if found
   const recommendationsWithSwaps = roomsOk.reduce((acc, room) => {
-    const roomEventsForDate = db.events.filter(event => event.room === room.id);
+    const roomEventsForDate = db.events.filter(event => {
+      return (
+        event.room === room.id &&
+        ((event.date.end > date.start && event.date.start < date.end) ||
+          (event.date.start < date.end && event.date.end > date.start))
+      );
+    });
     const filteredRooms = db.rooms.filter(
       r => parseInt(r.id, 10) !== parseInt(room.id, 10)
     );
@@ -117,7 +128,9 @@ export const getRecommendation = (date, members, db) => {
             start: closestAvailableTime,
             end: moment(closestAvailableTime + (date.end - date.start))
           },
-          room.id
+          room.id,
+          [],
+          true
         )
       ];
     }, [])
@@ -153,6 +166,15 @@ export const findClosestAvailableTime = (date, room, allEvents) => {
     if (duration <= timeGapBetweenEvents) {
       closestAvailableTime = moment(currEventEnd);
     }
+  }
+  if (
+    closestAvailableTime.hour() >= 23 ||
+    moment(closestAvailableTime + duration).date() > closestAvailableTime.date()
+  ) {
+    closestAvailableTime
+      .add(1, "days")
+      .hour(8)
+      .startOf("hour");
   }
   return closestAvailableTime;
 };
@@ -204,4 +226,20 @@ export const countTotalSteps = (members, roomFloor) => {
   }, 0);
   return result;
 };
-// export default getRecommendation;
+
+export const prepareRawEventsForGetRecommendation = events => {
+  return events.map(event => {
+    return {
+      ...event,
+      members: event.users,
+      room: parseInt(event.room.id, 10),
+      date: {
+        start: moment(event.dateStart),
+        end: moment(event.dateEnd)
+      }
+    };
+  });
+};
+export const prepareRawRoomsForGetRecommendation = rooms => {
+  return rooms.map(room => ({ ...room, id: parseInt(room.id, 10) }));
+};

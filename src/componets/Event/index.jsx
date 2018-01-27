@@ -17,6 +17,11 @@ import TimeInput from "../common/gui/TimeInput";
 import LayoutEdit from "./LayoutEdit";
 import { round5 } from "../../utils/";
 import LayoutNew from "./LayoutNew";
+import {
+  getRecommendation,
+  prepareRawEventsForGetRecommendation,
+  prepareRawRoomsForGetRecommendation
+} from "../../utils/getRecommendation";
 
 const EVENTS_QUERY = gql`
   query EventEvents {
@@ -42,6 +47,7 @@ const EVENTS_QUERY = gql`
 const EVENT_QUERY = gql`
   query EventQuery($id: ID!) {
     event(id: $id) {
+      id
       title
       dateStart
       dateEnd
@@ -139,16 +145,18 @@ const EVENT_DELETE = gql`
 class Event extends Component {
   constructor(props) {
     super(props);
-    const { currentDate, event, match: { params: { eventId } } } = this.props;
+    const {
+      currentDate,
+      event,
+      rooms,
+      match: { params: { eventId, roomId } }
+    } = this.props;
     let { dateStart, dateEnd } = this.createDefaultDates();
     let room = null;
     let participantsList = [];
     let title = "";
     let date = currentDate;
-    // dateStart = { value: moment(event.dateStart) }
-    // dateEnd = { value: moment(event.dateEnd) }
     if (eventId && !event.loading) {
-      console.log("boom");
       room = event.event.room;
       participantsList = event.event.users;
       title = event.event.title;
@@ -156,7 +164,11 @@ class Event extends Component {
       dateStart = moment(event.event.dateStart);
       dateEnd = moment(event.event.dateEnd);
     }
-    console.log("construct");
+    if (roomId && !rooms.loading) {
+      room = rooms.rooms.find(
+        room => parseInt(room.id, 10) === parseInt(roomId, 10)
+      );
+    }
     this.state = {
       form: {
         title: { value: title, errors: false },
@@ -170,23 +182,20 @@ class Event extends Component {
         room: room
       },
       deleteAlertModal: false
-      // recommendedRooms: []
     };
-    console.log(this.state);
   }
   toggleFieldsErrors(fieldNames) {
-    console.log(fieldNames);
+    // console.log(fieldNames);
     this.setState(prevState => {
       const errorFields = fieldNames.reduce((acc, fn) => {
         return { ...acc, [fn]: { ...prevState.form[fn], errors: true } };
       }, {});
-      console.log(errorFields);
+      // console.log(errorFields);
       return {
         ...prevState,
         form: {
           ...prevState.form,
           ...errorFields
-          // [fieldName]: { ...prevState.form[fieldName], errors: true }
         }
       };
     });
@@ -200,9 +209,6 @@ class Event extends Component {
       fieldName: "participantsInput",
       ok: this.state.form.participantsList.length > 0
     };
-    // const dateOk = {
-    //   fieldName: 'date'
-    // }
     const fields = [titleOk, participantsOk];
     const canSubmit = fields.every(e => e.ok);
     if (canSubmit) {
@@ -215,27 +221,7 @@ class Event extends Component {
       );
     }
   }
-  // componentWillReceiveProps(nextProps) {
-  //   const { match: { params: { roomId } } } = this.props;
-  //   if (roomId) {
-  //     if (nextProps.rooms.loading === false) {
-  //       const room = nextProps.rooms.rooms.find(
-  //         room => parseInt(room.id, 10) === parseInt(roomId, 10)
-  //       );
-  //       this.setState(prevState => ({
-  //         ...prevState,
-  //         form: {
-  //           ...prevState.form,
-  //           room
-  //         }
-  //       }));
-  //     }
-  //   }
-  // }
 
-  componentDidMount() {
-    // this.hydrateStateWithDataOnEdit(); //rehydrates state if we back
-  }
   componentDidUpdate(prevProps) {
     const { match: { path } } = this.props;
     if (path.includes("edit")) {
@@ -249,7 +235,6 @@ class Event extends Component {
   }
 
   hydrateStateWithDataOnEdit() {
-    console.log("Hydrate");
     const { match: { path } } = this.props;
     if (!path.includes("edit")) return;
     const { event: { event } } = this.props;
@@ -289,6 +274,11 @@ class Event extends Component {
       deleteAlertModal: !prevState.deleteAlertModal
     }));
   };
+  toggleUpdadeSuccessModal = () => {
+    this.setState(prevState => ({
+      UpdadeSuccessModal: !prevState.UpdadeSuccessModal
+    }));
+  };
 
   createCloseClickHandler = () => () => {
     const { history } = this.props;
@@ -323,63 +313,77 @@ class Event extends Component {
     const dateEnd = this.state.form.dateEnd.value
       .date(this.state.form.date.value.date())
       .toISOString();
-    if (isEditing) {
-      console.log("udate now", eventId);
-      updateEvent({
-        variables: {
-          id: eventId,
-          title: this.state.form.title.value,
-          dateStart: dateStart,
-          dateEnd: dateEnd
-        }
-      });
-      this.state.form.addedParticipantsIdsList.forEach(userId => {
-        addUserToEvent({
+    console.log("udate now", eventId);
+    console.log(this.state.form.room);
+    const swaps = this.state.form.room.swaps || [];
+    Promise.all(
+      swaps.map(swap => {
+        // perform swaps first
+        return changeEventRoom({
           variables: {
-            id: eventId,
-            userId: userId
+            id: swap.event,
+            roomId: swap.room
           }
         });
-      });
-      this.state.form.deletedParticipantsIdsList.forEach(userId => {
-        removeUserFromEvent({
-          variables: {
-            id: eventId,
-            userId: userId
-          }
-        });
-      });
-      changeEventRoom({
-        variables: {
-          id: eventId,
-          roomId: this.state.form.room.id
-        }
-      });
-    } else {
-      createEvent({
-        variables: {
-          title: this.state.form.title.value,
-          dateStart: dateStart,
-          dateEnd: dateEnd,
-          usersIds: this.state.form.addedParticipantsIdsList,
-          roomId: this.state.form.room.id
-        }
       })
-        .then(res => {
-          const { history } = this.props;
-          history.push("/");
-          return res;
-        })
-        .then(() => {
-          const { setModalCreateData, toggleModalCreate } = this.props;
-          setModalCreateData({
-            dateStart: this.state.form.dateStart.value,
-            dateEnd: this.state.form.dateEnd.value,
-            room: this.state.form.room
-          });
-          toggleModalCreate();
+    ).then(res => {
+      if (isEditing) {
+        updateEvent({
+          variables: {
+            id: eventId,
+            title: this.state.form.title.value,
+            dateStart: dateStart,
+            dateEnd: dateEnd
+          }
         });
-    }
+        this.state.form.addedParticipantsIdsList.forEach(userId => {
+          addUserToEvent({
+            variables: {
+              id: eventId,
+              userId: userId
+            }
+          });
+        });
+        this.state.form.deletedParticipantsIdsList.forEach(userId => {
+          removeUserFromEvent({
+            variables: {
+              id: eventId,
+              userId: userId
+            }
+          });
+        });
+        changeEventRoom({
+          variables: {
+            id: eventId,
+            roomId: this.state.form.room.id
+          }
+        });
+      } else {
+        createEvent({
+          variables: {
+            title: this.state.form.title.value,
+            dateStart: dateStart,
+            dateEnd: dateEnd,
+            usersIds: this.state.form.addedParticipantsIdsList,
+            roomId: this.state.form.room.id
+          }
+        })
+          .then(res => {
+            const { history } = this.props;
+            history.push("/");
+            return res;
+          })
+          .then(() => {
+            const { setModalCreateData, toggleModalCreate } = this.props;
+            setModalCreateData({
+              dateStart: this.state.form.dateStart.value,
+              dateEnd: this.state.form.dateEnd.value,
+              room: this.state.form.room
+            });
+            toggleModalCreate();
+          });
+      }
+    });
   };
 
   handleTextInputChange = e => {
@@ -397,12 +401,79 @@ class Event extends Component {
     });
   };
 
+  checkSameRoomRecommendationExist = (value, name) => {
+    value = moment(value);
+    if (!this.state.form.room) return false;
+    let {
+      match: { path, params: { eventId } },
+      events: { loading: eventsLoading, events },
+      rooms: { loading: roomsLoading, rooms }
+    } = this.props;
+    if (eventsLoading || roomsLoading) return true;
+    if (path.includes("edit")) {
+      // filter editing event from db, so getRecommendation count
+      // its time as free
+      events = events.filter(e => parseInt(e.id, 10) !== parseInt(eventId, 10));
+    }
+    const db = {
+      rooms: prepareRawRoomsForGetRecommendation(rooms),
+      events: prepareRawEventsForGetRecommendation(events)
+    };
+    const date = {
+      start: this.state.form.dateStart.value,
+      end: this.state.form.dateEnd.value
+    };
+    if (name && name === "dateStart") {
+      // this part is executing only when time input changed
+      // needed to check if new event time fits free slot
+      date.start = value;
+    } else if (name && name === "dateEnd") {
+      date.end = value;
+    } else {
+      date.start
+        .year(value.year())
+        .month(value.month())
+        .date(value.date());
+      date.end
+        .year(value.year())
+        .month(value.month())
+        .date(value.date());
+    }
+    const recommendations = getRecommendation(
+      date,
+      this.state.form.participantsList,
+      db
+    );
+    // console.log(recommendations);
+    const sameRoomRecommendation = recommendations
+      .filter(rec => !rec.asap)
+      .find(rec => {
+        const result =
+          parseInt(this.state.form.room.id, 10) === parseInt(rec.room, 10);
+        return result;
+      });
+    console.log(sameRoomRecommendation);
+    if (sameRoomRecommendation) return sameRoomRecommendation;
+  };
+
   handleTimeInputChange = name => value => {
+    const recommendation = this.checkSameRoomRecommendationExist(value, name);
+    let room = this.state.form.room;
+    if (recommendation) {
+      room = {
+        ...room,
+        dateStart: recommendation.date.start,
+        dateEnd: recommendation.date.end,
+        swap: recommendation.swap
+      };
+    } else {
+      room = null;
+    }
     this.setState(prevState => {
       return {
         form: {
           ...prevState.form,
-          room: null,
+          room,
           [name]: {
             value,
             errors: null
@@ -413,30 +484,48 @@ class Event extends Component {
   };
 
   handleDateInputChange = value => {
+    const recommendation = this.checkSameRoomRecommendationExist(value);
+    let room = this.state.form.room;
+    if (recommendation) {
+      room = {
+        ...room,
+        dateStart: recommendation.date.start,
+        dateEnd: recommendation.date.end,
+        swap: recommendation.swap
+      };
+    } else {
+      room = null;
+    }
+    console.log(room);
+
     this.setState(prevState => {
       const newDate = moment(value);
       return {
         ...prevState,
         form: {
           ...prevState.form,
-          room: null,
+          room: room,
           date: {
             value: moment(value),
             errors: null
           },
           dateStart: {
-            value: prevState.form.dateStart.value
-              .clone()
-              .year(newDate.year())
-              .month(newDate.month())
-              .date(newDate.date())
+            value: room
+              ? room.dateStart
+              : prevState.form.dateStart.value
+                  .clone()
+                  .year(newDate.year())
+                  .month(newDate.month())
+                  .date(newDate.date())
           },
           dateEnd: {
-            value: prevState.form.dateEnd.value
-              .clone()
-              .year(newDate.year())
-              .month(newDate.month())
-              .date(newDate.date())
+            value: room
+              ? room.dateEnd
+              : prevState.form.dateEnd.value
+                  .clone()
+                  .year(newDate.year())
+                  .month(newDate.month())
+                  .date(newDate.date())
           }
         }
       };
@@ -463,7 +552,6 @@ class Event extends Component {
     );
     if (!userAlreadyInList) {
       this.setState(prevState => {
-        console.log("hey");
         const participantsList = prevState.form.participantsList.concat(user);
         let room = prevState.form.room;
         if (room && room.capacity < participantsList.length) {
@@ -606,13 +694,15 @@ class Event extends Component {
     });
   };
 
-  handleRoomClick = id => () => {
+  handleRoomClick = room => () => {
     this.setState(prevState => {
-      const room = this.props.rooms.rooms.filter(room => room.id === id)[0];
       return {
         ...prevState,
         form: {
           ...prevState.form,
+          date: { value: room.dateStart },
+          dateStart: { value: room.dateStart },
+          dateEnd: { value: room.dateEnd },
           room: room
         }
       };
@@ -631,7 +721,11 @@ class Event extends Component {
   };
 
   createCommonInputsAndHandlers() {
-    const { events: { events = [] }, rooms: { rooms = [] } } = this.props;
+    const {
+      events: { events = [] },
+      rooms: { rooms = [] },
+      match: { params: { eventId } }
+    } = this.props;
     return {
       titleInput: this.createTitleInput(),
       dateInput: this.createDateInput(),
@@ -640,11 +734,17 @@ class Event extends Component {
       participantsInput: this.createParticipantsInput(),
       participantsList: this.createParticipantsList(),
       meetingRoomsList: () => {
+        let eventsToWorkWith = events;
+        if (eventId) {
+          eventsToWorkWith = eventsToWorkWith.filter(
+            event => event.id !== eventId
+          );
+        }
         return (
           <RecommendedRooms
             dateStart={this.state.form.dateStart.value}
             dateEnd={this.state.form.dateEnd.value}
-            events={events}
+            events={eventsToWorkWith}
             rooms={rooms}
             members={this.state.form.participantsList}
             selectedRoom={this.state.form.room}
