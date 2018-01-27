@@ -15,7 +15,8 @@ const LayoutCommon = props => {
     participantsList,
     meetingRoomsList,
     editPageDeleteSection,
-    onCloseClick
+    onCloseClick,
+    specialStyle
   } = props;
   return (
     <div className="form-container__row-1">
@@ -54,7 +55,7 @@ const LayoutCommon = props => {
           </div>
         </div>
         <div className="delimiter" />
-        <div className="form__row row-2">
+        <div className="form__row row-2" style={specialStyle}>
           <div className="form__column">
             <div className="fields-wrapper">
               <div className="form__field">

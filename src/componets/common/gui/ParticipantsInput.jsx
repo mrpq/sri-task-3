@@ -95,11 +95,14 @@ class ParticipantsInput extends Component {
       onClearClick,
       onItemClick
     } = this.props;
+    const errors =
+      typeof value === "object" && value.errors ? value.errors : false;
     return (
       <div className="dropdown-field" id={id} name={name}>
         <input
+          className={cn({ "input--error": errors })}
           type="text"
-          value={value}
+          value={typeof value === "object" ? value.value : value}
           name={name}
           placeholder={placeholder}
           id={id}
@@ -136,7 +139,7 @@ ParticipantsInput.propTypes = {
   id: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   placeholder: PropTypes.string,
-  value: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
   onChange: PropTypes.func.isRequired,
   items: PropTypes.array,
   onClearClick: PropTypes.func,

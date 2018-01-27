@@ -1,17 +1,21 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
+import cn from "classnames";
 
 import CloseIcon from "../icons/CloseIcon";
 
 class ClearableInput extends Component {
   render() {
     const { placeholder, value, id, name, onChange, onClearClick } = this.props;
+    const errors =
+      typeof value === "object" && value.errors ? value.errors : false;
     return (
       <div className="clearable-input">
         <input
+          className={cn({ "input--error": errors })}
           type="text"
           id={id}
-          value={value}
+          value={typeof value === "object" ? value.value : value}
           name={name}
           placeholder={placeholder}
           onChange={onChange}
@@ -31,7 +35,7 @@ ClearableInput.propTypes = {
   id: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   placeholder: PropTypes.string,
-  value: PropTypes.string,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   onChange: PropTypes.func.isRequired,
   onClearClick: PropTypes.func.isRequired
 };

@@ -1054,6 +1054,10 @@ input {
   outline: 0;
 }
 
+input.input--error {
+  border-color: red;
+}
+
 input:last-of-type {
   margin-bottom: 0;
 }

@@ -140,17 +140,27 @@ class Event extends Component {
   constructor(props) {
     super(props);
     const { currentDate, event, match: { params: { eventId } } } = this.props;
-    const { dateStart, dateEnd } = this.createDefaultDates();
+    let { dateStart, dateEnd } = this.createDefaultDates();
     let room = null;
     let participantsList = [];
+    let title = "";
+    let date = currentDate;
+    // dateStart = { value: moment(event.dateStart) }
+    // dateEnd = { value: moment(event.dateEnd) }
     if (eventId && !event.loading) {
+      console.log("boom");
       room = event.event.room;
       participantsList = event.event.users;
+      title = event.event.title;
+      date = moment(event.event.dateStart);
+      dateStart = moment(event.event.dateStart);
+      dateEnd = moment(event.event.dateEnd);
     }
+    console.log("construct");
     this.state = {
       form: {
-        title: { value: "", errors: null },
-        date: { value: currentDate, errors: null },
+        title: { value: title, errors: false },
+        date: { value: date, errors: null },
         dateStart: { value: dateStart, errors: null },
         dateEnd: { value: dateEnd, errors: null },
         participantsInput: { value: "", errors: null },
@@ -162,24 +172,66 @@ class Event extends Component {
       deleteAlertModal: false
       // recommendedRooms: []
     };
+    console.log(this.state);
   }
-  componentWillReceiveProps(nextProps) {
-    const { match: { params: { roomId } } } = this.props;
-    if (roomId) {
-      if (nextProps.rooms.loading === false) {
-        const room = nextProps.rooms.rooms.find(
-          room => parseInt(room.id, 10) === parseInt(roomId, 10)
-        );
-        this.setState(prevState => ({
-          ...prevState,
-          form: {
-            ...prevState.form,
-            room
-          }
-        }));
-      }
+  toggleFieldsErrors(fieldNames) {
+    console.log(fieldNames);
+    this.setState(prevState => {
+      const errorFields = fieldNames.reduce((acc, fn) => {
+        return { ...acc, [fn]: { ...prevState.form[fn], errors: true } };
+      }, {});
+      console.log(errorFields);
+      return {
+        ...prevState,
+        form: {
+          ...prevState.form,
+          ...errorFields
+          // [fieldName]: { ...prevState.form[fieldName], errors: true }
+        }
+      };
+    });
+  }
+  canSubmit() {
+    const titleOk = {
+      fieldName: "title",
+      ok: this.state.form.title.value.length > 0
+    };
+    const participantsOk = {
+      fieldName: "participantsInput",
+      ok: this.state.form.participantsList.length > 0
+    };
+    // const dateOk = {
+    //   fieldName: 'date'
+    // }
+    const fields = [titleOk, participantsOk];
+    const canSubmit = fields.every(e => e.ok);
+    if (canSubmit) {
+      return true;
+    } else {
+      this.toggleFieldsErrors(
+        fields.reduce((acc, field) => {
+          return !field.ok ? [...acc, field.fieldName] : acc;
+        }, [])
+      );
     }
   }
+  // componentWillReceiveProps(nextProps) {
+  //   const { match: { params: { roomId } } } = this.props;
+  //   if (roomId) {
+  //     if (nextProps.rooms.loading === false) {
+  //       const room = nextProps.rooms.rooms.find(
+  //         room => parseInt(room.id, 10) === parseInt(roomId, 10)
+  //       );
+  //       this.setState(prevState => ({
+  //         ...prevState,
+  //         form: {
+  //           ...prevState.form,
+  //           room
+  //         }
+  //       }));
+  //     }
+  //   }
+  // }
 
   componentDidMount() {
     // this.hydrateStateWithDataOnEdit(); //rehydrates state if we back
@@ -197,6 +249,7 @@ class Event extends Component {
   }
 
   hydrateStateWithDataOnEdit() {
+    console.log("Hydrate");
     const { match: { path } } = this.props;
     if (!path.includes("edit")) return;
     const { event: { event } } = this.props;
@@ -248,7 +301,7 @@ class Event extends Component {
   createDeleteConfirmClickHandler = () => () => {
     // send delete request
     const { removeEvent, match: { params: { eventId } } } = this.props;
-    removeEvent({ variables: { eventId } }).then(res => {
+    removeEvent({ variables: { id: eventId } }).then(res => {
       const { history } = this.props;
       history.push("/");
     });
@@ -271,9 +324,10 @@ class Event extends Component {
       .date(this.state.form.date.value.date())
       .toISOString();
     if (isEditing) {
+      console.log("udate now", eventId);
       updateEvent({
         variables: {
-          eventId,
+          id: eventId,
           title: this.state.form.title.value,
           dateStart: dateStart,
           dateEnd: dateEnd
@@ -282,7 +336,7 @@ class Event extends Component {
       this.state.form.addedParticipantsIdsList.forEach(userId => {
         addUserToEvent({
           variables: {
-            eventId,
+            id: eventId,
             userId: userId
           }
         });
@@ -290,14 +344,14 @@ class Event extends Component {
       this.state.form.deletedParticipantsIdsList.forEach(userId => {
         removeUserFromEvent({
           variables: {
-            eventId,
+            id: eventId,
             userId: userId
           }
         });
       });
       changeEventRoom({
         variables: {
-          eventId,
+          id: eventId,
           roomId: this.state.form.room.id
         }
       });
@@ -444,7 +498,7 @@ class Event extends Component {
           <ClearableInput
             id={id}
             name={name}
-            value={this.state.form[name].value}
+            value={this.state.form.title}
             onChange={this.handleTextInputChange}
             onClearClick={this.handleClearClick(name)}
             placeholder="О чем будем говорить?"
@@ -511,7 +565,7 @@ class Event extends Component {
         id={id}
         labelText={labelText}
         name={name}
-        value={this.state.form[name].value}
+        value={this.state.form.participantsInput}
         onChange={this.handleTextInputChange}
         onClearClick={this.handleClearClick(name)}
         onDropdownItemClick={this.handleDropdownItemClick}
@@ -606,7 +660,13 @@ class Event extends Component {
   }
   handleEventCreate() {
     const commonInputsAndHandlers = this.createCommonInputsAndHandlers();
-    return <LayoutNew {...commonInputsAndHandlers} title="Новая встреча" />;
+    return (
+      <LayoutNew
+        {...commonInputsAndHandlers}
+        roomChecked={this.state.form.room}
+        title="Новая встреча"
+      />
+    );
   }
   handleEventEdit() {
     if (this.props.event.event === null) {
@@ -683,10 +743,10 @@ Event = compose(
     }
   }),
   graphql(EVENT_DELETE, {
-    name: "removeEvent"
-    // options: {
-    //   refetchQueries: ["RoomsItemEvents", "EventEvents"]
-    // }
+    name: "removeEvent",
+    options: {
+      refetchQueries: ["RoomsItemEvents", "EventEvents"]
+    }
   })
 )(Event);
 

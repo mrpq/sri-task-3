@@ -18,7 +18,9 @@ const USERS_QUERY = gql`
 `;
 class ParticipantsDropdown extends Component {
   filterUsers() {
-    const { data: { users }, value, usersAlreadyInList } = this.props;
+    const { data: { users }, usersAlreadyInList } = this.props;
+    let { value } = this.props;
+    value = typeof value === "object" ? value.value : value;
     if (value.length < 1 || !users) return [];
     const valueLowerCase = value.toLowerCase();
     const filteredUsers = users.filter(user => {
@@ -67,7 +69,7 @@ ParticipantsDropdown.propTypes = {
   id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
   name: PropTypes.string,
   labelText: PropTypes.string,
-  value: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
   onChange: PropTypes.func.isRequired,
   onClearClick: PropTypes.func.isRequired,
   onDropdownItemClick: PropTypes.func.isRequired,
