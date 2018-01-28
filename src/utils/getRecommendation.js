@@ -11,6 +11,8 @@ class Recommendation {
 
 export const getRecommendation = (date, members, db) => {
   const getSwapsForEvent = (event, room, roomsList, swaps) => {
+    const now = moment();
+    if (moment(event.dateStart) < now) return false; //can not swap room with event started
     const roomsOk = roomsList
       .filter(isRoomSizeOk(event.members))
       .sort(freeFirst(event.date, db))
