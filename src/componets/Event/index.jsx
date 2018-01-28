@@ -182,14 +182,18 @@ class Event extends Component {
         deletedParticipantsIdsList: [],
         room: { value: room, errors: null }
       },
-      deleteAlertModal: false
+      deleteAlertModal: false,
+      updateSuccessModal: false
     };
   }
   toggleFieldsErrors(fieldNames) {
     // console.log(fieldNames);
     this.setState(prevState => {
-      const errorFields = fieldNames.reduce((acc, fn) => {
-        return { ...acc, [fn]: { ...prevState.form[fn], errors: true } };
+      const errorFields = fieldNames.reduce((acc, fieldName) => {
+        return {
+          ...acc,
+          [fieldName]: { ...prevState.form[fieldName], errors: true }
+        };
       }, {});
       // console.log(errorFields);
       return {
@@ -201,6 +205,38 @@ class Event extends Component {
       };
     });
   }
+  checkDateStartOk(dateStart, dateEnd) {
+    return (
+      dateStart.diff(dateEnd, "minutes") <= -15 &&
+      dateStart <=
+        dateStart
+          .clone()
+          .hour(23)
+          .startOf("hour")
+          .subtract(15, "minutes") &&
+      dateStart >=
+        dateStart
+          .clone()
+          .hour(8)
+          .startOf("hour")
+    );
+  }
+  checkDateEndOk(dateStart, dateEnd) {
+    return (
+      dateEnd.diff(dateStart, "minutes") >= 15 &&
+      dateEnd >
+        dateStart
+          .clone()
+          .hour(8)
+          .minute(15)
+          .startOf("minute") &&
+      dateEnd <=
+        dateStart
+          .clone()
+          .hour(23)
+          .startOf("hour")
+    );
+  }
   canSubmit() {
     const titleOk = {
       fieldName: "title",
@@ -210,7 +246,21 @@ class Event extends Component {
       fieldName: "participantsInput",
       ok: this.state.form.participantsList.length > 0
     };
-    const fields = [titleOk, participantsOk];
+    const roomOk = {
+      fieldName: "room",
+      ok: this.state.form.room.value
+    };
+    const dateStart = this.state.form.dateStart.value;
+    const dateEnd = this.state.form.dateEnd.value;
+    const dateStartOk = {
+      fieldName: "dateStart",
+      ok: this.checkDateStartOk(dateStart, dateEnd)
+    };
+    const dateEndOk = {
+      fieldName: "dateEnd",
+      ok: this.checkDateEndOk(dateStart, dateEnd)
+    };
+    const fields = [titleOk, participantsOk, roomOk, dateStartOk, dateEndOk];
     const canSubmit = fields.every(e => e.ok);
     if (canSubmit) {
       return true;
@@ -220,6 +270,7 @@ class Event extends Component {
           return !field.ok ? [...acc, field.fieldName] : acc;
         }, [])
       );
+      return false;
     }
   }
 
@@ -277,7 +328,7 @@ class Event extends Component {
   };
   toggleUpdadeSuccessModal = () => {
     this.setState(prevState => ({
-      UpdadeSuccessModal: !prevState.UpdadeSuccessModal
+      updadeSuccessModal: !prevState.updadeSuccessModal
     }));
   };
 
@@ -297,8 +348,10 @@ class Event extends Component {
       history.push("/");
     });
   };
-  createSubmitClickHandler = () => () => {
+  createSubmitClickHandler = () => e => {
     // send update request
+    e.preventDefault();
+    if (!this.canSubmit()) return;
     const {
       createEvent,
       updateEvent,
@@ -325,64 +378,71 @@ class Event extends Component {
           }
         });
       })
-    ).then(res => {
-      if (isEditing) {
-        updateEvent({
-          variables: {
-            id: eventId,
-            title: this.state.form.title.value,
-            dateStart: dateStart,
-            dateEnd: dateEnd
-          }
-        });
-        this.state.form.addedParticipantsIdsList.forEach(userId => {
-          addUserToEvent({
+    )
+      .then(res => {
+        if (isEditing) {
+          updateEvent({
             variables: {
               id: eventId,
-              userId: userId
+              title: this.state.form.title.value,
+              dateStart: dateStart,
+              dateEnd: dateEnd
             }
           });
-        });
-        this.state.form.deletedParticipantsIdsList.forEach(userId => {
-          removeUserFromEvent({
-            variables: {
-              id: eventId,
-              userId: userId
-            }
-          });
-        });
-        changeEventRoom({
-          variables: {
-            id: eventId,
-            roomId: this.state.form.room.value.id
-          }
-        });
-      } else {
-        createEvent({
-          variables: {
-            title: this.state.form.title.value,
-            dateStart: dateStart,
-            dateEnd: dateEnd,
-            usersIds: this.state.form.addedParticipantsIdsList,
-            roomId: this.state.form.room.value.id
-          }
-        })
-          .then(res => {
-            const { history } = this.props;
-            history.push("/");
-            return res;
-          })
-          .then(() => {
-            const { setModalCreateData, toggleModalCreate } = this.props;
-            setModalCreateData({
-              dateStart: this.state.form.dateStart.value,
-              dateEnd: this.state.form.dateEnd.value,
-              room: this.state.form.room.value
+          this.state.form.addedParticipantsIdsList.forEach(userId => {
+            addUserToEvent({
+              variables: {
+                id: eventId,
+                userId: userId
+              }
             });
-            toggleModalCreate();
           });
-      }
-    });
+          this.state.form.deletedParticipantsIdsList.forEach(userId => {
+            removeUserFromEvent({
+              variables: {
+                id: eventId,
+                userId: userId
+              }
+            });
+          });
+          changeEventRoom({
+            variables: {
+              id: eventId,
+              roomId: this.state.form.room.value.id
+            }
+          });
+        } else {
+          createEvent({
+            variables: {
+              title: this.state.form.title.value,
+              dateStart: dateStart,
+              dateEnd: dateEnd,
+              usersIds: this.state.form.addedParticipantsIdsList,
+              roomId: this.state.form.room.value.id
+            }
+          });
+        }
+      })
+      .then(res => {
+        if (!isEditing) {
+          const { history } = this.props;
+          history.push("/");
+        }
+        return res;
+      })
+      .then(() => {
+        if (isEditing) {
+          this.toggleUpdadeSuccessModal();
+        } else {
+          const { setModalCreateData, toggleModalCreate } = this.props;
+          setModalCreateData({
+            dateStart: this.state.form.dateStart.value,
+            dateEnd: this.state.form.dateEnd.value,
+            room: this.state.form.room.value
+          });
+          toggleModalCreate();
+        }
+      });
   };
 
   handleTextInputChange = e => {
@@ -455,6 +515,9 @@ class Event extends Component {
   };
 
   handleTimeInputChange = name => value => {
+    if (value === null) {
+      return;
+    }
     const recommendation = this.checkSameRoomRecommendationExist(value, name);
     let room = this.state.form.room.value;
     if (recommendation) {
@@ -627,14 +690,14 @@ class Event extends Component {
   createTimeInput = (id, name = id) => {
     const defaultDate =
       name === "dateStart"
-        ? this.state.form.dateStart.value
-        : this.state.form.dateEnd.value;
+        ? this.state.form.dateStart
+        : this.state.form.dateEnd;
     return () => {
       return (
         <TimeInput
           id={id}
           name={name}
-          defaultValue={defaultDate}
+          // defaultValue={defaultDate}
           value={defaultDate}
           onChange={this.handleTimeInputChange(name)}
         />
@@ -775,10 +838,14 @@ class Event extends Component {
       <LayoutEdit
         title="Редактирование Встречи"
         {...commonInputsAndHandlers}
-        modal={{
+        modalDelete={{
           visible: this.state.deleteAlertModal,
           onConfirmClick: this.createDeleteConfirmClickHandler(),
           onCancelClick: this.toggleDeleteArlertModal
+        }}
+        modalUpdate={{
+          visible: this.state.updadeSuccessModal,
+          onSubmitClick: this.toggleUpdadeSuccessModal
         }}
       />
     );

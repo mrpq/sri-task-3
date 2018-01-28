@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 const InputLabel = props => {
   const { id, text } = props;
   return (
-    <label className="formfield-label" htmlFor={id}>
+    <label className="formfield-label" htmlFor={id} {...props}>
       {text}
     </label>
   );

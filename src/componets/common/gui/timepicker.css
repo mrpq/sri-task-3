@@ -46,3 +46,6 @@
 .rc-time-picker-panel-clear-btn {
   display: none;
 }
+.time-picker--error input {
+  border-color: red;
+}

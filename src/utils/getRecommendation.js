@@ -150,10 +150,16 @@ const freeFirst = (date, db) => (roomA, roomB) => {
 };
 
 export const findClosestAvailableTime = (date, room, allEvents) => {
+  if (date.start.hour() >= 23)
+    return date.start
+      .add(1, "days")
+      .hour(8)
+      .startOf("hour");
   const roomEventsSortedByTime = allEvents
     .filter(event => parseInt(event.room, 10) === parseInt(room.id, 10)) // work only with events for exact room
     .filter(event => event.date.end > date.start) // filter events in past
     .sort((eventA, eventB) => eventA.date.end - eventB.date.start); //sort events by time
+  if (!roomEventsSortedByTime.length) return date.start;
   let closestAvailableTime = null;
   const duration = date.end - date.start;
   for (let i = 0; i <= roomEventsSortedByTime.length - 1; i += 1) {

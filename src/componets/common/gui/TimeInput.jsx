@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import cn from "classnames";
 
 import TimePicker from "rc-time-picker";
 // import moment from "moment";
@@ -7,10 +8,12 @@ import "rc-time-picker/assets/index.css";
 import "./timepicker.css";
 
 const TimeInput = props => {
-  const { id, name, value, defaultValue, onChange } = props;
+  const { id, name, value, onChange } = props;
+  const classNames = cn({ "time-picker--error": value.errors });
   return (
     // <div
     <TimePicker
+      className={classNames}
       id={id}
       name={name}
       disabledHours={() => {
@@ -18,8 +21,8 @@ const TimeInput = props => {
       }}
       showSecond={false}
       minuteStep={5}
-      defaultValue={defaultValue}
-      value={value}
+      defaultValue={value.value}
+      value={value.value}
       onChange={onChange}
     />
   );

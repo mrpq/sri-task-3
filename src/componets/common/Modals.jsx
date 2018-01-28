@@ -1,5 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
+import EmojiSuccess from "./icons/EmojiSuccess";
+import EmojiAlert from "./icons/EmojiAlert";
 
 export const ModalDelete = ({ onCancelClick, onConfirmClick, visible }) => {
   const styles = {
@@ -8,7 +10,9 @@ export const ModalDelete = ({ onCancelClick, onConfirmClick, visible }) => {
   return (
     <div className="modal-container" style={styles}>
       <div className="modal">
-        <div className="modial__icon-container" />
+        <div className="modial__icon-container">
+          <EmojiAlert className="modal__icon" />
+        </div>
         <div className="modal__info">
           <strong className="modal__title">
             Встреча будет удалена безвозвратно
@@ -41,13 +45,15 @@ export const ModalCreate = ({ onSubmitClick, visible, data }) => {
   return (
     <div className="modal-container" style={styles}>
       <div className="modal">
-        <div className="modial__icon-container" />
+        <div className="modial__icon-container">
+          <EmojiSuccess className="modal__icon" />
+        </div>
         <div className="modal__info">
           <strong className="modal__title">Встеча создана!</strong>
           <div className="modal__details">
             <div className="modal__date-time">
               <span className="modal__date">
-                {data.dateStart.format("DD MMMM")}
+                {`${data.dateStart.format("DD MMMM")} `}
               </span>
               <span className="modal__time">
                 {data.dateStart.format("HH:mm")}—{data.dateEnd.format("HH:mm")}
@@ -58,6 +64,30 @@ export const ModalCreate = ({ onSubmitClick, visible, data }) => {
               <span className="modal__floor">{` ${data.room.floor} этаж`}</span>
             </div>
           </div>
+        </div>
+        <div className="modal__cta">
+          <button className="btn" onClick={onSubmitClick}>
+            Хорошо
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const ModalUpdate = ({ onSubmitClick, visible }) => {
+  const styles = {
+    display: visible ? "block" : "none"
+  };
+  if (!visible) return null;
+  return (
+    <div className="modal-container" style={styles}>
+      <div className="modal">
+        <div className="modial__icon-container">
+          <EmojiSuccess className="modal__icon" />
+        </div>
+        <div className="modal__info">
+          <strong className="modal__title">Данные встречи обновлены</strong>
         </div>
         <div className="modal__cta">
           <button className="btn" onClick={onSubmitClick}>

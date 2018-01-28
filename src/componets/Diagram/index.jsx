@@ -8,6 +8,7 @@ import Footer from "./Footer";
 
 const CurrentTime = props => {
   const now = moment(new Date());
+  if (now.hour() <= 8 || now.hour() >= 23) return null;
   const styles = createGridStylesForTimeRange(now);
   return (
     <div className="diagram__curr-time diagram-grid">

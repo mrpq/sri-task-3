@@ -45,11 +45,24 @@ class RecommendedRooms extends Component {
   }
 
   renderRecommendedRooms() {
-    const { rooms, dateStart, onRoomClick, onRoomDeleteClick } = this.props;
+    const {
+      selectedRoom: { errors },
+      rooms,
+      dateStart,
+      onRoomClick,
+      onRoomDeleteClick
+    } = this.props;
     const recommendations = this.getRecommendation();
+    const errorStyles = {};
+    if (errors) {
+      errorStyles.color = "red";
+    }
+    const labelText = errors
+      ? "Выберите переговорку"
+      : "Рекомендованные переговорки";
     return (
       <Fragment>
-        <InputLabel text="Рекомендованные переговорки" />
+        <InputLabel text={labelText} style={errorStyles} />
         {recommendations.map(rec => {
           const room = rooms.find(
             room => parseInt(room.id, 10) === parseInt(rec.room, 10)

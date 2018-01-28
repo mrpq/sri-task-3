@@ -1866,16 +1866,16 @@ input:focus ~ .clearable-input__clear--visible {
   opacity: 1;
 }
 
-@media (min-width: 960px) {
-  .room__meeting:hover .meeting-tooltip-triangle {
-    visibility: visible;
-    opacity: 1;
-  }
-  .room__meeting:hover .meeting-tooltip {
-    visibility: visible;
-    opacity: 1;
-  }
+/* @media (min-width: 960px) { */
+.room__meeting:hover .meeting-tooltip-triangle {
+  visibility: visible;
+  opacity: 1;
 }
+.room__meeting:hover .meeting-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+/* } */
 
 .meeting-tooltip__edit {
   position: absolute;

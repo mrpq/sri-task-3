@@ -1,11 +1,17 @@
 import React, { Fragment } from "react";
 import PropTypes from "prop-types";
 
-import { ModalDelete } from "../common/Modals";
+import { ModalDelete, ModalUpdate } from "../common/Modals";
 import LayoutCommon from "./LayoutCommon";
 
 const LayoutEdit = props => {
-  const { onDeleteClick, onCloseClick, onSubmitClick, modal } = props;
+  const {
+    onDeleteClick,
+    onCloseClick,
+    onSubmitClick,
+    modalDelete,
+    modalUpdate
+  } = props;
   return (
     <Fragment>
       <form onSubmit={e => e.preventDefault()}>
@@ -53,7 +59,8 @@ const LayoutEdit = props => {
           </div>
         </div>
       </form>
-      <ModalDelete {...modal} />
+      <ModalDelete {...modalDelete} />
+      <ModalUpdate {...modalUpdate} />
     </Fragment>
   );
 };
@@ -62,10 +69,14 @@ LayoutEdit.propTypes = {
   onCloseClick: PropTypes.func.isRequired,
   onDeleteClick: PropTypes.func.isRequired,
   onSubmitClick: PropTypes.func.isRequired,
-  modal: PropTypes.shape({
+  modalDelete: PropTypes.shape({
     visible: PropTypes.bool,
     onCancelClick: PropTypes.func.isRequired,
     onConfirmClick: PropTypes.func.isRequired
+  }),
+  modalUpdate: PropTypes.shape({
+    visible: PropTypes.bool,
+    onSubmitClick: PropTypes.func.isRequired
   })
 };
 
