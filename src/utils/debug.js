@@ -96,7 +96,6 @@ const isRoomFree = (date, eventsList) => room => {
   const isFree = eventsList
     .filter(event => parseInt(event.room, 10) === parseInt(room.id, 10))
     .every(event => {
-      // console.log(start >= dayStart);
       const res =
         start >= dayStart &&
         end <= dayEnd &&
@@ -218,7 +217,6 @@ const getRecommendation = (date, members, db) => {
           (event.date.start < date.end && event.date.end > date.start))
       );
     });
-    console.log("e f d ", roomEventsForDate);
     const filteredRooms = db.rooms.filter(
       r => parseInt(r.id, 10) !== parseInt(room.id, 10)
     );
@@ -299,5 +297,3 @@ const db = {
 };
 
 const res = getRecommendation(date, persons1, db);
-console.log(res);
-// getRecommendation(date, persons1, db);

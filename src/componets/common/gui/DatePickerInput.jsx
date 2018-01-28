@@ -9,19 +9,15 @@ import { formatDate, parseDate } from "react-day-picker/moment";
 const DatePickerInput = props => {
   const { value, onChange, dayPickerProps } = props;
   return (
-    <DayPickerInput
-      // onDayClick={this.handleDayClick}
-      onDayChange={onChange}
-      formatDate={formatDate}
-      parseDate={parseDate}
-      // dayPickerProps={{
-      //   locale: "ru",
-      //   localeUtils: MomentLocaleUtils
-      // }}
-      value={value}
-      dayPickerProps={dayPickerProps}
-      // value={value && value.format("YYYY-M-D")}
-    />
+    <div className="calendar-input">
+      <DayPickerInput
+        onDayChange={onChange}
+        formatDate={formatDate}
+        parseDate={parseDate}
+        value={value}
+        dayPickerProps={dayPickerProps}
+      />
+    </div>
   );
 };
 

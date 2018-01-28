@@ -203,7 +203,6 @@ export const isRoomFree = (date, eventsList) => room => {
   const isFree = eventsList
     .filter(event => parseInt(event.room, 10) === parseInt(room.id, 10))
     .every(event => {
-      // console.log(start >= dayStart);
       const res =
         start >= dayStart &&
         end <= dayEnd &&

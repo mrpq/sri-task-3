@@ -187,7 +187,6 @@ class Event extends Component {
     };
   }
   toggleFieldsErrors(fieldNames) {
-    // console.log(fieldNames);
     this.setState(prevState => {
       const errorFields = fieldNames.reduce((acc, fieldName) => {
         return {
@@ -195,7 +194,6 @@ class Event extends Component {
           [fieldName]: { ...prevState.form[fieldName], errors: true }
         };
       }, {});
-      // console.log(errorFields);
       return {
         ...prevState,
         form: {
@@ -557,7 +555,6 @@ class Event extends Component {
     } else {
       room = null;
     }
-    console.log(room);
 
     this.setState(prevState => {
       const newDate = moment(value);
