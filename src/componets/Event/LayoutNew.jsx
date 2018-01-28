@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 
 import LayoutCommon from "./LayoutCommon";
@@ -7,7 +7,7 @@ const LayoutNew = props => {
   const { onCloseClick, onSubmitClick, roomChecked } = props;
   const specialStyle = { paddingBottom: "110px" };
   return (
-    <Fragment>
+    <div className="page__wrapper">
       <form onSubmit={e => e.preventDefault()}>
         <LayoutCommon {...props} specialStyle={specialStyle} />
 
@@ -40,7 +40,7 @@ const LayoutNew = props => {
           </div>
         </div>
       </form>
-    </Fragment>
+    </div>
   );
 };
 

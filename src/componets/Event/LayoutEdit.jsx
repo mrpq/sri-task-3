@@ -13,7 +13,7 @@ const LayoutEdit = props => {
     modalUpdate
   } = props;
   return (
-    <Fragment>
+    <div className="page__wrapper">
       <form onSubmit={e => e.preventDefault()}>
         <LayoutCommon
           {...props}
@@ -61,7 +61,7 @@ const LayoutEdit = props => {
       </form>
       <ModalDelete {...modalDelete} />
       <ModalUpdate {...modalUpdate} />
-    </Fragment>
+    </div>
   );
 };
 
