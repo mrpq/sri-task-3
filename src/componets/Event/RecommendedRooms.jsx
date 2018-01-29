@@ -7,7 +7,7 @@ import {
   getRecommendation,
   prepareRawEventsForGetRecommendation,
   prepareRawRoomsForGetRecommendation
-} from "../../utils/getRecommendation";
+} from "./getRecommendation";
 
 class RecommendedRooms extends Component {
   getRecommendation = () => {

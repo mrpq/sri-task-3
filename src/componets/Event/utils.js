@@ -3,7 +3,7 @@ import {
   getRecommendation,
   prepareRawEventsForGetRecommendation,
   prepareRawRoomsForGetRecommendation
-} from "../../utils/getRecommendation";
+} from "./getRecommendation";
 
 export const createDefaultDates = (currentDate, timeStart, timeEnd) => {
   const dateStart = timeStart
