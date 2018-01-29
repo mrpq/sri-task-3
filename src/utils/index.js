@@ -1,9 +1,5 @@
 import moment from "moment";
 
-export const round5 = x => {
-  return Math.ceil(x / 5) * 5;
-};
-
 export const createGridStylesForTimeRange = (timeStart, timeEnd) => {
   timeStart = moment(timeStart).startOf("minute");
   const dayStart = moment(timeStart)
