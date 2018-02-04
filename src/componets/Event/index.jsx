@@ -86,21 +86,18 @@ class Event extends Component {
     });
   }
 
-  componentDidUpdate(prevProps) {
+  componentWillReceiveProps(nextProps) {
     const { match: { path } } = this.props;
     if (path.includes("edit")) {
-      if (
-        prevProps.event.loading === true &&
-        this.props.event.loading === false
-      ) {
-        this.hydrateStateWithDataOnEdit();
+      const { event: { loading } } = this.props;
+      const { event: { loading: nextEventLoading } } = nextProps;
+      if (loading === true && nextEventLoading === false) {
+        this.hydrateStateWithData(nextProps);
       }
     }
   }
-
-  hydrateStateWithDataOnEdit() {
-    const { match: { path }, event: { event } } = this.props;
-    if (!path.includes("edit")) return;
+  hydrateStateWithData(props) {
+    const { match: { path }, event: { event } } = props;
     this.setState(prevState => {
       const newState = {
         ...prevState,
