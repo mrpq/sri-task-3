@@ -36,14 +36,14 @@ ParticipantsInput.propTypes = {
   usersAlreadyInList: PropTypes.array
 };
 
-export const createParticipantsInput = self => {
+export const createParticipantsInput = eventComponent => {
   return () => (
     <ParticipantsInput
-      value={self.state.form.participantsInput}
-      onChange={self.handleTextInputChange}
-      onClearClick={self.handleClearClick}
-      onDropdownItemClick={self.handleDropdownItemClick}
-      usersAlreadyInList={self.state.form.participantsList}
+      value={eventComponent.state.form.participantsInput}
+      onChange={eventComponent.handleTextInputChange}
+      onClearClick={eventComponent.handleClearClick}
+      onDropdownItemClick={eventComponent.handleDropdownItemClick}
+      usersAlreadyInList={eventComponent.state.form.participantsList}
     />
   );
 };

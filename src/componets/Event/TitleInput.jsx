@@ -24,12 +24,12 @@ const TitleIput = props => {
   );
 };
 
-export const createTitleInput = self => {
+export const createTitleInput = eventComponent => {
   return () => (
     <TitleIput
-      value={self.state.form.title}
-      onChange={self.handleTextInputChange}
-      onClearClick={self.handleClearClick}
+      value={eventComponent.state.form.title}
+      onChange={eventComponent.handleTextInputChange}
+      onClearClick={eventComponent.handleClearClick}
     />
   );
 };

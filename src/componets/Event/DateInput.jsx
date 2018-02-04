@@ -35,11 +35,11 @@ const DateInput = props => {
   );
 };
 
-export const createDateInput = self => {
+export const createDateInput = eventComponent => {
   return () => (
     <DateInput
-      value={self.state.form.date.value}
-      onChange={self.handleDateInputChange}
+      value={eventComponent.state.form.date.value}
+      onChange={eventComponent.handleDateInputChange}
     />
   );
 };

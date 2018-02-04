@@ -1,9 +1,11 @@
 import React from "react";
 import TimeInput from "../common/gui/TimeInput";
 
-export const createTimeInput = (self, id, name = id) => {
+export const createTimeInput = (eventComponent, id, name = id) => {
   const defaultDate =
-    name === "dateStart" ? self.state.form.dateStart : self.state.form.dateEnd;
+    name === "dateStart"
+      ? eventComponent.state.form.dateStart
+      : eventComponent.state.form.dateEnd;
   return () => {
     return (
       <TimeInput
@@ -11,7 +13,7 @@ export const createTimeInput = (self, id, name = id) => {
         name={name}
         // defaultValue={defaultDate}
         value={defaultDate}
-        onChange={self.handleTimeInputChange(name)}
+        onChange={eventComponent.handleTimeInputChange(name)}
       />
     );
   };
