@@ -20,7 +20,7 @@ import { createParticipantsInput } from "./ParticipantsInput";
 import { createParticipantsList } from "./ParticipantsList";
 import { createMeetingroomsList } from "./MeetingRoomsList";
 import * as queries from "./queries";
-import { setFormFieldsErrors } from "./eventStateUpdaters";
+import { setFormFieldsErrors, updateFormForEvent } from "./eventStateUpdaters";
 
 class Event extends Component {
   constructor(props) {
@@ -92,19 +92,10 @@ class Event extends Component {
   hydrateStateWithData(props) {
     const { match: { path }, event: { event } } = props;
     this.setState(prevState => {
-      const newState = {
+      return {
         ...prevState,
-        form: {
-          ...prevState.form,
-          title: { value: event.title },
-          date: { value: moment(event.dateStart) },
-          dateStart: { value: moment(event.dateStart) },
-          dateEnd: { value: moment(event.dateEnd) },
-          participantsList: event.users,
-          room: { value: event.room }
-        }
+        form: updateFormForEvent(event, prevState.form)
       };
-      return newState;
     });
   }
 
