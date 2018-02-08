@@ -1,24 +1,34 @@
 import React from "react";
-import { setFormFieldsErrors } from "../eventStateUpdaters";
+import {
+  setFormFieldsErrors,
+  updateFormParticipants
+} from "../eventStateUpdaters";
+
+const initStateForm = ({
+  title,
+  date,
+  dateStart,
+  dateEnd,
+  participantsList,
+  participantsInput,
+  room,
+  addedParticipantsIdsList,
+  deletedParticipantsIdsList
+}) => {
+  return {
+    title: { value: title, errors: null },
+    date: { value: date, errors: null },
+    dateStart: { value: dateStart, errors: null },
+    dateEnd: { value: dateEnd, errors: null },
+    participantsList,
+    participantsInput: { value: "", errors: null },
+    room,
+    addedParticipantsIdsList,
+    deletedParticipantsIdsList
+  };
+};
 
 describe("setFormFieldsErrors()", () => {
-  const initStateForm = ({
-    title,
-    date,
-    dateStart,
-    dateEnd,
-    participantsInput,
-    room
-  }) => {
-    return {
-      title: { value: title, errors: null },
-      date: { value: date, errors: null },
-      dateStart: { value: dateStart, errors: null },
-      dateEnd: { value: dateEnd, errors: null },
-      participantsInput: { value: "", errors: null },
-      room: { value: room, errors: null }
-    };
-  };
   it("returns result of proper type", () => {
     const form = initStateForm({});
     const fieldsWithErrors = ["title"];
@@ -37,7 +47,7 @@ describe("setFormFieldsErrors()", () => {
   });
 
   it("does not toggle errors on improper fields", () => {
-    const form = initStateForm({});
+    const form = initStateForm({ room: { errors: null } });
     const fieldsWithErrors = ["title"];
     const updatedForm = setFormFieldsErrors(fieldsWithErrors, form);
     const expected = true;
@@ -46,5 +56,57 @@ describe("setFormFieldsErrors()", () => {
     expect(updatedForm.dateEnd.errors).not.toBe(expected);
     expect(updatedForm.participantsInput.errors).not.toBe(expected);
     expect(updatedForm.room.errors).not.toBe(expected);
+  });
+});
+
+describe("updateFormParticipants()", () => {
+  it("user added to form.participantsList", () => {
+    const form = initStateForm({
+      participantsList: [{ id: "1" }, { id: "2" }],
+      addedParticipantsIdsList: [],
+      deletedParticipantsIdsList: [],
+      room: { value: { capacity: 2 } }
+    });
+    const updatedForm = updateFormParticipants({ id: "3" }, form);
+    const actual = updatedForm.participantsList;
+    expect(actual).toHaveLength(3);
+    expect(actual).toContainEqual({ id: "3" });
+  });
+
+  it("user id is added to form.addedParticipantsIdsList", () => {
+    const form = initStateForm({
+      participantsList: [{ id: "1" }, { id: "2" }],
+      addedParticipantsIdsList: [],
+      deletedParticipantsIdsList: ["3"],
+      room: { value: { capacity: 2 } }
+    });
+    const updatedForm = updateFormParticipants({ id: "3" }, form);
+    const actual = updatedForm.addedParticipantsIdsList;
+    expect(actual).toContain("3");
+  });
+
+  it("user id is deleted to form.deletedParticipantsIdsList", () => {
+    const form = initStateForm({
+      participantsList: [{ id: "1" }, { id: "2" }],
+      addedParticipantsIdsList: [],
+      deletedParticipantsIdsList: ["3"],
+      room: { value: { capacity: 2 } }
+    });
+    const updatedForm = updateFormParticipants({ id: "3" }, form);
+    const actual = updatedForm.deletedParticipantsIdsList;
+    expect(actual).not.toContain("3");
+  });
+
+  it("form.room reset if does not fit users", () => {
+    const form = initStateForm({
+      participantsList: [{ id: "1" }, { id: "2" }],
+      addedParticipantsIdsList: [],
+      deletedParticipantsIdsList: [],
+      room: { value: { capacity: 2 } }
+    });
+    const updatedForm = updateFormParticipants({ id: "3" }, form);
+    console.log(updatedForm);
+    const actual = updatedForm.room;
+    expect(actual.value).toBeNull();
   });
 });
