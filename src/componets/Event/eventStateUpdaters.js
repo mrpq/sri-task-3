@@ -21,3 +21,29 @@ export const updateFormForEvent = (event, form) => {
     room: { value: event.room }
   };
 };
+
+export const updateFormParticipants = (user, form) => {
+  const {
+    participantsList,
+    addedParticipantsIdsList,
+    deletedParticipantsIdsList,
+    room
+  } = form;
+  form;
+  const newParticipantsList = participantsList.concat(user);
+  const newAddedParticipantsIdsList = addedParticipantsIdsList.concat(user.id);
+  const newDeletedParticipantsIdsList = deletedParticipantsIdsList.filter(
+    id => id !== user.id
+  );
+  let newRoom = room;
+  if (room && room.value.capacity < newParticipantsList.length) {
+    newRoom = { ...room, value: null };
+  }
+  return {
+    ...form,
+    participantsList: newParticipantsList,
+    addedParticipantsIdsList: newAddedParticipantsIdsList,
+    deletedParticipantsIdsList: newDeletedParticipantsIdsList,
+    room: newRoom
+  };
+};

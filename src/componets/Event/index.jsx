@@ -20,7 +20,11 @@ import { createParticipantsInput } from "./ParticipantsInput";
 import { createParticipantsList } from "./ParticipantsList";
 import { createMeetingroomsList } from "./MeetingRoomsList";
 import * as queries from "./queries";
-import { setFormFieldsErrors, updateFormForEvent } from "./eventStateUpdaters";
+import {
+  updateFormForEvent,
+  setFormFieldsErrors,
+  updateFormParticipants
+} from "./eventStateUpdaters";
 
 class Event extends Component {
   constructor(props) {
@@ -125,29 +129,15 @@ class Event extends Component {
     });
   };
   handleDropdownItemClick = user => {
-    const userAlreadyInList = this.state.form.participantsList.find(
+    const { form } = this.state;
+    const userAlreadyInList = form.participantsList.find(
       item => item.id === user.id
     );
     if (!userAlreadyInList) {
       this.setState(prevState => {
-        const participantsList = prevState.form.participantsList.concat(user);
-        let room = prevState.form.room.value;
-        if (room && room.capacity < participantsList.length) {
-          room = null; //uncheck room if we added more than it can take
-        }
         return {
           ...prevState,
-          form: {
-            ...prevState.form,
-            participantsList,
-            room: { value: room },
-            addedParticipantsIdsList: prevState.form.addedParticipantsIdsList.concat(
-              user.id
-            ),
-            deletedParticipantsIdsList: prevState.form.deletedParticipantsIdsList.filter(
-              _id => _id !== user.id
-            )
-          }
+          form: updateFormParticipants(user, form)
         };
       });
     }
