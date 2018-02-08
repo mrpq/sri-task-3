@@ -10,6 +10,8 @@ import moment from "moment";
 import Home from "./componets/Home/";
 import Event from "./componets/Event/";
 
+import { updateCurrentDate } from "./appStateUpdaters";
+
 const client1 = new ApolloClient({
   link: new HttpLink({
     uri: "http://localhost:3000/graphgl"
@@ -31,12 +33,7 @@ class App extends Component {
     };
   }
   handleCalendarArrowClick = direction => () => {
-    this.setState(prevState => {
-      const d = prevState.currentDate;
-      return {
-        currentDate: d.date(d.date() + direction)
-      };
-    });
+    this.setState(updateCurrentDate(direction));
   };
   handleCalendarDayClick = (day, { selected }) => {
     this.setState({ currentDate: moment(day) });
