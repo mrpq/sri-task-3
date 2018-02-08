@@ -22,7 +22,7 @@ describe("setFormFieldsErrors()", () => {
   it("returns result of proper type", () => {
     const form = initStateForm({});
     const fieldsWithErrors = ["title"];
-    const actual = setFormFieldsErrors(fieldsWithErrors)(form);
+    const actual = setFormFieldsErrors(fieldsWithErrors, form);
     const expected = "object";
     expect(typeof actual).toBe(expected);
   });
@@ -30,7 +30,7 @@ describe("setFormFieldsErrors()", () => {
   it("toggles errors on proper fields", () => {
     const form = initStateForm({});
     const fieldsWithErrors = ["title"];
-    const updatedForm = setFormFieldsErrors(fieldsWithErrors)(form);
+    const updatedForm = setFormFieldsErrors(fieldsWithErrors, form);
     const actual = updatedForm.title.errors;
     const expected = true;
     expect(actual).toBe(expected);
@@ -39,7 +39,7 @@ describe("setFormFieldsErrors()", () => {
   it("does not toggle errors on improper fields", () => {
     const form = initStateForm({});
     const fieldsWithErrors = ["title"];
-    const updatedForm = setFormFieldsErrors(fieldsWithErrors)(form);
+    const updatedForm = setFormFieldsErrors(fieldsWithErrors, form);
     const expected = true;
     expect(updatedForm.date.errors).not.toBe(expected);
     expect(updatedForm.dateStart.errors).not.toBe(expected);

@@ -1,4 +1,4 @@
-export const setFormFieldsErrors = fields => form => {
+export const setFormFieldsErrors = (fields, form) => {
   const errorFields = fields.reduce((acc, fieldName) => {
     return {
       ...acc,
