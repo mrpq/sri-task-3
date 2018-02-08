@@ -20,6 +20,7 @@ import { createParticipantsInput } from "./ParticipantsInput";
 import { createParticipantsList } from "./ParticipantsList";
 import { createMeetingroomsList } from "./MeetingRoomsList";
 import * as queries from "./queries";
+import { setFormFieldsErrors } from "./eventStateUpdaters";
 
 class Event extends Component {
   constructor(props) {
@@ -70,18 +71,10 @@ class Event extends Component {
   }
   toggleFieldsErrors(fieldNames) {
     this.setState(prevState => {
-      const errorFields = fieldNames.reduce((acc, fieldName) => {
-        return {
-          ...acc,
-          [fieldName]: { ...prevState.form[fieldName], errors: true }
-        };
-      }, {});
+      const formWithErrors = setFormFieldsErrors(fieldNames, prevState.form);
       return {
         ...prevState,
-        form: {
-          ...prevState.form,
-          ...errorFields
-        }
+        form: formWithErrors
       };
     });
   }
