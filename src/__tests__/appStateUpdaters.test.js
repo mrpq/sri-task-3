@@ -1,11 +1,13 @@
 import moment from "moment";
 import { updateCurrentDate } from "../appStateUpdaters";
-const initState = ({ currentDate = moment() }) => {
-  return {
-    currentDate
-  };
-};
+
 describe("updateCurrentDate", () => {
+  const initState = ({ currentDate = moment() }) => {
+    return {
+      currentDate
+    };
+  };
+
   it("returns state with correct date on date increase", () => {
     const currentDate = moment(new Date(2018, 1, 10));
     const initialState = initState({
@@ -17,6 +19,7 @@ describe("updateCurrentDate", () => {
     const expected = true;
     expect(actual).toEqual(expected);
   });
+
   it("returns state with correct date on date decrease", () => {
     const currentDate = moment(new Date(2018, 1, 10));
     const initialState = initState({
