@@ -109,3 +109,51 @@ export const updateFormOnTimeInputChange = (timeInput, form, props) => {
     }
   };
 };
+
+export const updateFormOnDateInputChange = (dateInputValue, form, props) => {
+  const recommendation = checkSameRoomRecommendationExistForNewDate(
+    dateInputValue,
+    undefined,
+    form,
+    props
+  );
+  let room = form.room.value;
+  if (recommendation) {
+    room = {
+      ...room,
+      dateStart: recommendation.date.start,
+      dateEnd: recommendation.date.end,
+      swap: recommendation.swap
+    };
+  } else {
+    room = null;
+  }
+
+  const newDate = moment(dateInputValue);
+  return {
+    ...form,
+    room: { value: room },
+    date: {
+      value: moment(dateInputValue),
+      errors: null
+    },
+    dateStart: {
+      value: room
+        ? room.dateStart
+        : form.dateStart.value
+            .clone()
+            .year(newDate.year())
+            .month(newDate.month())
+            .date(newDate.date())
+    },
+    dateEnd: {
+      value: room
+        ? room.dateEnd
+        : form.dateEnd.value
+            .clone()
+            .year(newDate.year())
+            .month(newDate.month())
+            .date(newDate.date())
+    }
+  };
+};

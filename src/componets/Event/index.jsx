@@ -26,7 +26,8 @@ import {
   updateFormParticipants,
   updateFormParticipantsOnDelete,
   updateFormOnRoomClick,
-  updateFormOnTimeInputChange
+  updateFormOnTimeInputChange,
+  updateFormOnDateInputChange
 } from "./eventStateUpdaters";
 
 class Event extends Component {
@@ -336,54 +337,14 @@ class Event extends Component {
   };
 
   handleDateInputChange = dateInputValue => {
-    const recommendation = checkSameRoomRecommendationExistForNewDate(
-      dateInputValue,
-      undefined,
-      this.state.form,
-      this.props
-    );
-    let room = this.state.form.room.value;
-    if (recommendation) {
-      room = {
-        ...room,
-        dateStart: recommendation.date.start,
-        dateEnd: recommendation.date.end,
-        swap: recommendation.swap
-      };
-    } else {
-      room = null;
-    }
-
     this.setState(prevState => {
-      const newDate = moment(dateInputValue);
       return {
         ...prevState,
-        form: {
-          ...prevState.form,
-          room: { value: room },
-          date: {
-            value: moment(dateInputValue),
-            errors: null
-          },
-          dateStart: {
-            value: room
-              ? room.dateStart
-              : prevState.form.dateStart.value
-                  .clone()
-                  .year(newDate.year())
-                  .month(newDate.month())
-                  .date(newDate.date())
-          },
-          dateEnd: {
-            value: room
-              ? room.dateEnd
-              : prevState.form.dateEnd.value
-                  .clone()
-                  .year(newDate.year())
-                  .month(newDate.month())
-                  .date(newDate.date())
-          }
-        }
+        form: updateFormOnDateInputChange(
+          dateInputValue,
+          prevState.form,
+          this.props
+        )
       };
     });
   };
