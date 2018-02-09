@@ -5,23 +5,23 @@ import {
 } from "../eventStateUpdaters";
 
 const initStateForm = ({
-  title,
-  date,
-  dateStart,
-  dateEnd,
-  participantsList,
-  participantsInput,
-  room,
-  addedParticipantsIdsList,
-  deletedParticipantsIdsList
+  title = { value: "", errors: null },
+  date = { value: "", errors: null },
+  dateStart = { value: "", errors: null },
+  dateEnd = { value: "", errors: null },
+  participantsList = [],
+  participantsInput = { value: "", errors: null },
+  room = { value: "", errors: null },
+  addedParticipantsIdsList = [],
+  deletedParticipantsIdsList = []
 }) => {
   return {
-    title: { value: title, errors: null },
-    date: { value: date, errors: null },
-    dateStart: { value: dateStart, errors: null },
-    dateEnd: { value: dateEnd, errors: null },
+    title,
+    date,
+    dateStart,
+    dateEnd,
     participantsList,
-    participantsInput: { value: "", errors: null },
+    participantsInput,
     room,
     addedParticipantsIdsList,
     deletedParticipantsIdsList
@@ -47,7 +47,7 @@ describe("setFormFieldsErrors()", () => {
   });
 
   it("does not toggle errors on improper fields", () => {
-    const form = initStateForm({ room: { errors: null } });
+    const form = initStateForm({});
     const fieldsWithErrors = ["title"];
     const updatedForm = setFormFieldsErrors(fieldsWithErrors, form);
     const expected = true;
@@ -62,10 +62,7 @@ describe("setFormFieldsErrors()", () => {
 describe("updateFormParticipants()", () => {
   it("user added to form.participantsList", () => {
     const form = initStateForm({
-      participantsList: [{ id: "1" }, { id: "2" }],
-      addedParticipantsIdsList: [],
-      deletedParticipantsIdsList: [],
-      room: { value: { capacity: 2 } }
+      participantsList: [{ id: "1" }, { id: "2" }]
     });
     const updatedForm = updateFormParticipants({ id: "3" }, form);
     const actual = updatedForm.participantsList;
@@ -76,9 +73,7 @@ describe("updateFormParticipants()", () => {
   it("user id is added to form.addedParticipantsIdsList", () => {
     const form = initStateForm({
       participantsList: [{ id: "1" }, { id: "2" }],
-      addedParticipantsIdsList: [],
-      deletedParticipantsIdsList: ["3"],
-      room: { value: { capacity: 2 } }
+      addedParticipantsIdsList: []
     });
     const updatedForm = updateFormParticipants({ id: "3" }, form);
     const actual = updatedForm.addedParticipantsIdsList;
@@ -88,9 +83,7 @@ describe("updateFormParticipants()", () => {
   it("user id is deleted to form.deletedParticipantsIdsList", () => {
     const form = initStateForm({
       participantsList: [{ id: "1" }, { id: "2" }],
-      addedParticipantsIdsList: [],
-      deletedParticipantsIdsList: ["3"],
-      room: { value: { capacity: 2 } }
+      deletedParticipantsIdsList: ["3"]
     });
     const updatedForm = updateFormParticipants({ id: "3" }, form);
     const actual = updatedForm.deletedParticipantsIdsList;
