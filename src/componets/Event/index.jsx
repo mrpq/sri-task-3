@@ -24,7 +24,8 @@ import {
   updateFormForEvent,
   setFormFieldsErrors,
   updateFormParticipants,
-  updateFormParticipantsOnDelete
+  updateFormParticipantsOnDelete,
+  updateFormOnRoomClick
 } from "./eventStateUpdaters";
 
 class Event extends Component {
@@ -157,13 +158,7 @@ class Event extends Component {
     this.setState(prevState => {
       return {
         ...prevState,
-        form: {
-          ...prevState.form,
-          date: { value: room.dateStart },
-          dateStart: { value: room.dateStart },
-          dateEnd: { value: room.dateEnd },
-          room: { value: room }
-        }
+        form: updateFormOnRoomClick(room, prevState.form)
       };
     });
   };

@@ -70,3 +70,13 @@ export const updateFormParticipantsOnDelete = (userId, form) => {
     deletedParticipantsIdsList: newDeletedParticipantsIdsList
   };
 };
+
+export const updateFormOnRoomClick = (room, form) => {
+  return {
+    ...form,
+    date: { value: room.dateStart },
+    dateStart: { value: room.dateStart },
+    dateEnd: { value: room.dateEnd },
+    room: { value: room }
+  };
+};
