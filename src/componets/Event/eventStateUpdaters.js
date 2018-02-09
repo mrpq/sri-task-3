@@ -1,4 +1,5 @@
 import moment from "moment";
+import { checkSameRoomRecommendationExistForNewDate } from "./utils";
 
 export const setFormFieldsErrors = (fields, form) => {
   const errorFields = fields.reduce((acc, fieldName) => {
@@ -78,5 +79,33 @@ export const updateFormOnRoomClick = (room, form) => {
     dateStart: { value: room.dateStart },
     dateEnd: { value: room.dateEnd },
     room: { value: room }
+  };
+};
+
+export const updateFormOnTimeInputChange = (timeInput, form, props) => {
+  const recommendation = checkSameRoomRecommendationExistForNewDate(
+    timeInput.value,
+    timeInput.name,
+    form,
+    props
+  );
+  let room = form.room.value;
+  if (recommendation) {
+    room = {
+      ...room,
+      dateStart: recommendation.date.start,
+      dateEnd: recommendation.date.end,
+      swap: recommendation.swap
+    };
+  } else {
+    room = null;
+  }
+  return {
+    ...form,
+    room: { value: room },
+    [timeInput.name]: {
+      value: timeInput.value,
+      errors: null
+    }
   };
 };

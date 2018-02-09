@@ -25,7 +25,8 @@ import {
   setFormFieldsErrors,
   updateFormParticipants,
   updateFormParticipantsOnDelete,
-  updateFormOnRoomClick
+  updateFormOnRoomClick,
+  updateFormOnTimeInputChange
 } from "./eventStateUpdaters";
 
 class Event extends Component {
@@ -314,44 +315,29 @@ class Event extends Component {
     });
   };
 
-  handleTimeInputChange = name => value => {
-    if (value === null) {
+  handleTimeInputChange = timeInputName => timeInputValue => {
+    if (timeInputValue === null) {
       return;
     }
-    const recommendation = checkSameRoomRecommendationExistForNewDate(
-      value,
-      name,
-      this.state.form,
-      this.props
-    );
-    let room = this.state.form.room.value;
-    if (recommendation) {
-      room = {
-        ...room,
-        dateStart: recommendation.date.start,
-        dateEnd: recommendation.date.end,
-        swap: recommendation.swap
-      };
-    } else {
-      room = null;
-    }
     this.setState(prevState => {
+      const newForm = updateFormOnTimeInputChange(
+        {
+          name: timeInputName,
+          value: timeInputValue
+        },
+        prevState.form,
+        this.props
+      );
       return {
-        form: {
-          ...prevState.form,
-          room: { value: room },
-          [name]: {
-            value,
-            errors: null
-          }
-        }
+        ...prevState,
+        form: newForm
       };
     });
   };
 
-  handleDateInputChange = value => {
+  handleDateInputChange = dateInputValue => {
     const recommendation = checkSameRoomRecommendationExistForNewDate(
-      value,
+      dateInputValue,
       undefined,
       this.state.form,
       this.props
@@ -369,14 +355,14 @@ class Event extends Component {
     }
 
     this.setState(prevState => {
-      const newDate = moment(value);
+      const newDate = moment(dateInputValue);
       return {
         ...prevState,
         form: {
           ...prevState.form,
           room: { value: room },
           date: {
-            value: moment(value),
+            value: moment(dateInputValue),
             errors: null
           },
           dateStart: {

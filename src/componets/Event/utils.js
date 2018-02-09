@@ -8,7 +8,7 @@ import {
 export const createDefaultDates = (currentDate, timeStart, timeEnd) => {
   const dateStart = timeStart
     ? moment(parseInt(timeStart, 10))
-    : currentDate.clone().minute(round5(currentDate.minute())); //currentDate.clone().hour(;
+    : currentDate.clone().minute(round5(currentDate.minute()));
   const dateEnd = timeEnd
     ? moment(parseInt(timeEnd, 10))
     : dateStart.clone().add(15, "minutes");
