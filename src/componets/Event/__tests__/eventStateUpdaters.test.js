@@ -1,7 +1,8 @@
 import React from "react";
 import {
   setFormFieldsErrors,
-  updateFormParticipants
+  updateFormParticipants,
+  updateFormParticipantsOnDelete
 } from "../eventStateUpdaters";
 
 const initStateForm = ({
@@ -93,13 +94,50 @@ describe("updateFormParticipants()", () => {
   it("form.room reset if does not fit users", () => {
     const form = initStateForm({
       participantsList: [{ id: "1" }, { id: "2" }],
-      addedParticipantsIdsList: [],
-      deletedParticipantsIdsList: [],
       room: { value: { capacity: 2 } }
     });
     const updatedForm = updateFormParticipants({ id: "3" }, form);
-    console.log(updatedForm);
     const actual = updatedForm.room;
     expect(actual.value).toBeNull();
+  });
+});
+
+describe("updateFormParticipantsOnDelete()", () => {
+  it("form.participantsList does not contain deleted user #1", () => {
+    const form = initStateForm({
+      participantsList: [{ id: "1" }, { id: "2" }]
+    });
+    const updatedForm = updateFormParticipantsOnDelete("1", form);
+    const actual = updatedForm.participantsList;
+    expect(actual).not.toContainEqual({ id: "1" });
+  });
+
+  it("form.participantsList does not contain deleted user #2", () => {
+    const form = initStateForm({
+      participantsList: [{ id: "1" }, { id: "2" }]
+    });
+    const updatedForm = updateFormParticipantsOnDelete("2", form);
+    const actual = updatedForm.participantsList;
+    actual;
+    expect(actual).not.toContainEqual({ id: "2" });
+  });
+
+  it("form.addedParticipantsIdsList does not contain deleted user", () => {
+    const form = initStateForm({
+      addedParticipantsIdsList: ["1", "2"]
+    });
+    const updatedForm = updateFormParticipantsOnDelete("2", form);
+    const actual = updatedForm.addedParticipantsIdsList;
+    expect(actual).not.toContain("2");
+  });
+
+  it("form.deletedParticipantsIdsList contain deleted user", () => {
+    const form = initStateForm({
+      deletedParticipantsIdsList: []
+    });
+    const updatedForm = updateFormParticipantsOnDelete("2", form);
+    const actual = updatedForm.deletedParticipantsIdsList;
+    expect(actual).toHaveLength(1);
+    expect(actual).toContain("2");
   });
 });
