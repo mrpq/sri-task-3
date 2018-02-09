@@ -47,3 +47,26 @@ export const updateFormParticipants = (user, form) => {
     room: newRoom
   };
 };
+
+export const updateFormParticipantsOnDelete = (userId, form) => {
+  const {
+    addedParticipantsIdsList,
+    participantsList,
+    deletedParticipantsIdsList
+  } = form;
+  const newParticipantsList = participantsList.filter(
+    user => userId !== user.id
+  );
+  const newAddedParticipantsIdsList = addedParticipantsIdsList.filter(
+    id => id !== userId
+  );
+  const newDeletedParticipantsIdsList = deletedParticipantsIdsList.concat(
+    userId
+  );
+  return {
+    ...form,
+    participantsList: newParticipantsList,
+    addedParticipantsIdsList: newAddedParticipantsIdsList,
+    deletedParticipantsIdsList: newDeletedParticipantsIdsList
+  };
+};

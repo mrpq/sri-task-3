@@ -23,7 +23,8 @@ import * as queries from "./queries";
 import {
   updateFormForEvent,
   setFormFieldsErrors,
-  updateFormParticipants
+  updateFormParticipants,
+  updateFormParticipantsOnDelete
 } from "./eventStateUpdaters";
 
 class Event extends Component {
@@ -147,18 +148,7 @@ class Event extends Component {
     this.setState(prevState => {
       return {
         ...prevState,
-        form: {
-          ...prevState.form,
-          participantsList: prevState.form.participantsList.filter(
-            participant => participant.id !== id
-          ),
-          deletedParticipantsIdsList: prevState.form.deletedParticipantsIdsList.concat(
-            id
-          ),
-          addedParticipantsIdsList: prevState.form.addedParticipantsIdsList.filter(
-            userId => userId !== id
-          )
-        }
+        form: updateFormParticipantsOnDelete(id, prevState.form)
       };
     });
   };
